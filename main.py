@@ -253,6 +253,45 @@ class FileFilterApp:
         keywords = [line.strip() for line in keywords_text.split('\n') if line.strip()]
         return keywords
 
+    def get_current_filters(self):
+        """获取当前过滤器设置"""
+        filters = self.advanced_filters.get_filters()
+
+        # 添加文件类型过滤
+        if self.file_type_selector.is_enabled():
+            filters["file_types"] = self.file_type_selector.get_selected_types()
+        else:
+            filters["file_types"] = []
+
+        return filters
+
+    def validate_inputs(self):
+        """验证输入"""
+        archive_path = self.archive_var.get().strip()
+        keywords = self.get_keywords()
+
+        if not archive_path:
+            messagebox.showwarning("输入错误", "请选择压缩包")
+            return False
+
+        if not keywords:
+            messagebox.showwarning("输入错误", "请输入关键字")
+            return False
+
+        if not validate_archive(archive_path):
+            messagebox.showerror("错误", "选择的压缩包无效或不支持的格式")
+            return False
+
+        # 验证正则表达式
+        filters = self.get_current_filters()
+        if filters.get("use_regex", False):
+            valid, error = self.advanced_filters.validate_regex_keywords(keywords)
+            if not valid:
+                messagebox.showerror("正则表达式错误", error)
+                return False
+
+        return True
+
     def log_message(self, message, level="INFO"):
         """添加日志消息"""
         # 在GUI中显示
@@ -272,16 +311,11 @@ class FileFilterApp:
 
     def preview_files(self):
         """预览匹配的文件数量"""
+        if not self.validate_inputs():
+            return
+
         archive_path = self.archive_var.get().strip()
         keywords = self.get_keywords()
-
-        if not archive_path or not keywords:
-            messagebox.showwarning("输入错误", "请先选择压缩包并输入关键字")
-            return
-
-        if not validate_archive(archive_path):
-            messagebox.showerror("错误", "选择的压缩包无效或不支持的格式")
-            return
 
         try:
             self.progress_var.set("正在预览...")
@@ -300,7 +334,10 @@ class FileFilterApp:
     def _preview_files_thread(self, archive_path, keywords):
         """在后台线程中预览文件"""
         try:
-            matched_count, unmatched_count = count_matching_files_in_archive(archive_path, keywords)
+            # 获取过滤器设置
+            filters = self.get_current_filters()
+
+            matched_count, unmatched_count = count_matching_files_in_archive(archive_path, keywords, filters)
             self.root.after(0, self._preview_complete, matched_count, unmatched_count, None)
         except Exception as e:
             self.root.after(0, self._preview_complete, 0, 0, str(e))
