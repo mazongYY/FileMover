@@ -428,7 +428,7 @@ class FileFilterApp:
         except Exception as e:
             self.root.after(0, self.processing_complete, [], [], "", "", operation, str(e))
 
-    def processing_complete(self, matched_files, unmatched_files, matched_dir, unmatched_dir, error):
+    def processing_complete(self, matched_files, unmatched_files, matched_dir, unmatched_dir, operation, error):
         """处理完成后的回调"""
         self.progress_bar.stop()
         self.start_button.config(state='normal')
@@ -439,10 +439,11 @@ class FileFilterApp:
             messagebox.showerror("处理失败", f"操作失败: {error}")
         else:
             total_files = len(matched_files) + len(unmatched_files)
+            operation_text = {"move": "移动", "copy": "复制", "link": "链接"}[operation]
             self.progress_var.set(f"处理完成 - 总计 {total_files} 个文件")
 
             # 记录详细结果
-            self.log_message(f"文件处理完成:")
+            self.log_message(f"文件处理完成 ({operation_text}):")
             self.log_message(f"  命中文件: {len(matched_files)} 个 -> {os.path.basename(matched_dir)}")
             self.log_message(f"  未命中文件: {len(unmatched_files)} 个 -> {os.path.basename(unmatched_dir)}")
 
@@ -458,6 +459,7 @@ class FileFilterApp:
 
             # 显示结果对话框
             result_message = f"文件处理完成！\n\n"
+            result_message += f"操作类型: {operation_text}\n"
             result_message += f"总文件数: {total_files}\n"
             result_message += f"命中关键字: {len(matched_files)} 个\n"
             result_message += f"未命中关键字: {len(unmatched_files)} 个\n\n"
@@ -483,6 +485,8 @@ def main():
     def on_closing():
         if hasattr(app, 'temp_extract_dir') and app.temp_extract_dir:
             cleanup_temp_directory(app.temp_extract_dir)
+        if hasattr(app, 'save_user_settings'):
+            app.save_user_settings()
         if hasattr(app, 'logger'):
             app.logger.info("用户关闭程序")
         root.destroy()
