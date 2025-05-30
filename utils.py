@@ -6,8 +6,11 @@ import rarfile
 import py7zr
 import tempfile
 import logging
+import re
 from logging.handlers import RotatingFileHandler
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Any
+from datetime import datetime
+from pathlib import Path
 
 
 def setup_logging() -> logging.Logger:
@@ -175,7 +178,156 @@ def validate_archive(archive_path: str) -> bool:
     return ext in supported_formats and os.access(archive_path, os.R_OK)
 
 
-def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: str, unmatched_dir: str) -> Tuple[List[str], List[str]]:
+def match_keywords(filename: str, keywords: List[str], use_regex: bool = False) -> bool:
+    """
+    检查文件名是否匹配关键字
+
+    Args:
+        filename: 文件名
+        keywords: 关键字列表
+        use_regex: 是否使用正则表达式
+
+    Returns:
+        bool: 是否匹配
+    """
+    if not keywords:
+        return False
+
+    if use_regex:
+        # 正则表达式模式
+        for keyword in keywords:
+            if not keyword.strip():
+                continue
+            try:
+                if re.search(keyword.strip(), filename, re.IGNORECASE):
+                    return True
+            except re.error:
+                # 如果正则表达式无效，回退到普通匹配
+                if keyword.strip().lower() in filename.lower():
+                    return True
+    else:
+        # 普通字符串匹配
+        for keyword in keywords:
+            if keyword.strip() and keyword.strip().lower() in filename.lower():
+                return True
+
+    return False
+
+
+def filter_by_file_type(filename: str, allowed_types: List[str]) -> bool:
+    """
+    根据文件类型过滤文件
+
+    Args:
+        filename: 文件名
+        allowed_types: 允许的文件扩展名列表
+
+    Returns:
+        bool: 是否通过过滤
+    """
+    if not allowed_types:
+        return True  # 如果没有指定类型，则通过所有文件
+
+    file_ext = os.path.splitext(filename.lower())[1]
+    return file_ext in [ext.lower() for ext in allowed_types]
+
+
+def filter_by_size(file_path: str, min_size: int = 0, max_size: int = 0) -> bool:
+    """
+    根据文件大小过滤文件
+
+    Args:
+        file_path: 文件路径
+        min_size: 最小大小（字节）
+        max_size: 最大大小（字节），0表示无限制
+
+    Returns:
+        bool: 是否通过过滤
+    """
+    try:
+        file_size = os.path.getsize(file_path)
+
+        if min_size > 0 and file_size < min_size:
+            return False
+
+        if max_size > 0 and file_size > max_size:
+            return False
+
+        return True
+    except OSError:
+        return False
+
+
+def filter_by_date(file_path: str, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None) -> bool:
+    """
+    根据修改时间过滤文件
+
+    Args:
+        file_path: 文件路径
+        start_date: 开始日期
+        end_date: 结束日期
+
+    Returns:
+        bool: 是否通过过滤
+    """
+    try:
+        file_mtime = datetime.fromtimestamp(os.path.getmtime(file_path))
+
+        if start_date and file_mtime < start_date:
+            return False
+
+        if end_date and file_mtime > end_date:
+            return False
+
+        return True
+    except OSError:
+        return False
+
+
+def perform_file_operation(src_file: str, dst_file: str, operation: str = "move") -> bool:
+    """
+    执行文件操作（移动/复制/链接）
+
+    Args:
+        src_file: 源文件路径
+        dst_file: 目标文件路径
+        operation: 操作类型 ("move", "copy", "link")
+
+    Returns:
+        bool: 操作是否成功
+    """
+    logger = logging.getLogger("FileFilterTool")
+
+    try:
+        # 确保目标目录存在
+        os.makedirs(os.path.dirname(dst_file), exist_ok=True)
+
+        if operation == "move":
+            shutil.move(src_file, dst_file)
+            logger.debug(f"文件已移动: {os.path.basename(src_file)}")
+        elif operation == "copy":
+            shutil.copy2(src_file, dst_file)
+            logger.debug(f"文件已复制: {os.path.basename(src_file)}")
+        elif operation == "link":
+            # 创建硬链接（Windows支持）
+            if os.name == 'nt':  # Windows
+                os.link(src_file, dst_file)
+            else:  # Unix-like系统
+                os.link(src_file, dst_file)
+            logger.debug(f"文件已链接: {os.path.basename(src_file)}")
+        else:
+            logger.error(f"不支持的操作类型: {operation}")
+            return False
+
+        return True
+
+    except Exception as e:
+        logger.error(f"文件操作失败 {operation} {os.path.basename(src_file)}: {e}")
+        return False
+
+
+def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: str, unmatched_dir: str,
+                           filters: Optional[Dict[str, Any]] = None, operation: str = "move") -> Tuple[List[str], List[str]]:
     """
     分类并移动文件到对应目录
 
@@ -184,6 +336,8 @@ def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: s
         keywords: 关键字列表
         matched_dir: 命中文件目录
         unmatched_dir: 未命中文件目录
+        filters: 过滤条件字典
+        operation: 操作类型 ("move", "copy", "link")
 
     Returns:
         Tuple[List[str], List[str]]: (命中文件列表, 未命中文件列表)
@@ -193,59 +347,92 @@ def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: s
     matched_files = []
     unmatched_files = []
 
+    # 解析过滤条件
+    if filters is None:
+        filters = {}
+
+    use_regex = filters.get("use_regex", False)
+    file_types = filters.get("file_types", [])
+    size_filter = filters.get("size_filter", {})
+    date_filter = filters.get("date_filter", {})
+
     # 清空目标目录
     for target_dir in [matched_dir, unmatched_dir]:
         if os.path.exists(target_dir):
             shutil.rmtree(target_dir)
         os.makedirs(target_dir, exist_ok=True)
 
-    logger.info(f"开始分类文件，关键字: {keywords}")
+    logger.info(f"开始分类文件，关键字: {keywords}, 操作模式: {operation}")
+    if use_regex:
+        logger.info("使用正则表达式模式")
+    if file_types:
+        logger.info(f"文件类型过滤: {file_types}")
 
     # 遍历源目录中的所有文件
     for dirpath, _, filenames in os.walk(source_dir):
         for filename in filenames:
             src_file = os.path.join(dirpath, filename)
 
-            # 检查文件名是否包含关键字
-            is_matched = any(keyword.strip().lower() in filename.lower()
-                           for keyword in keywords if keyword.strip())
+            # 应用文件类型过滤
+            if not filter_by_file_type(filename, file_types):
+                logger.debug(f"文件类型过滤跳过: {filename}")
+                continue
+
+            # 应用文件大小过滤
+            if size_filter.get("enabled", False):
+                min_size = size_filter.get("min_size", 0)
+                max_size = size_filter.get("max_size", 0)
+                if not filter_by_size(src_file, min_size, max_size):
+                    logger.debug(f"文件大小过滤跳过: {filename}")
+                    continue
+
+            # 应用日期过滤
+            if date_filter.get("enabled", False):
+                start_date = date_filter.get("start_date")
+                end_date = date_filter.get("end_date")
+                if start_date:
+                    start_date = datetime.fromisoformat(start_date) if isinstance(start_date, str) else start_date
+                if end_date:
+                    end_date = datetime.fromisoformat(end_date) if isinstance(end_date, str) else end_date
+                if not filter_by_date(src_file, start_date, end_date):
+                    logger.debug(f"日期过滤跳过: {filename}")
+                    continue
+
+            # 检查文件名是否匹配关键字
+            is_matched = match_keywords(filename, keywords, use_regex)
 
             if is_matched:
                 # 命中关键字，移动到命中文件夹
                 dst_file = os.path.join(matched_dir, filename)
                 dst_file = get_unique_filename(dst_file)
 
-                try:
-                    shutil.move(src_file, dst_file)
+                if perform_file_operation(src_file, dst_file, operation):
                     matched_files.append(filename)
-                    logger.debug(f"命中文件已移动: {filename}")
-                except (OSError, shutil.Error) as e:
-                    logger.error(f"移动命中文件失败 {filename}: {e}")
-                    continue
+                    logger.debug(f"命中文件已{operation}: {filename}")
             else:
                 # 未命中关键字，移动到未命中文件夹
                 dst_file = os.path.join(unmatched_dir, filename)
                 dst_file = get_unique_filename(dst_file)
 
-                try:
-                    shutil.move(src_file, dst_file)
+                if perform_file_operation(src_file, dst_file, operation):
                     unmatched_files.append(filename)
-                    logger.debug(f"未命中文件已移动: {filename}")
-                except (OSError, shutil.Error) as e:
-                    logger.error(f"移动未命中文件失败 {filename}: {e}")
-                    continue
+                    logger.debug(f"未命中文件已{operation}: {filename}")
 
     logger.info(f"文件分类完成 - 命中: {len(matched_files)}, 未命中: {len(unmatched_files)}")
     return matched_files, unmatched_files
 
 
-def find_and_move_files_from_archive(archive_path: str, keywords: List[str]) -> Tuple[List[str], List[str], str, str]:
+def find_and_move_files_from_archive(archive_path: str, keywords: List[str],
+                                    filters: Optional[Dict[str, Any]] = None,
+                                    operation: str = "move") -> Tuple[List[str], List[str], str, str]:
     """
     从压缩包中查找并分类文件
 
     Args:
         archive_path: 压缩包路径
         keywords: 关键字列表
+        filters: 过滤条件字典
+        operation: 操作类型 ("move", "copy", "link")
 
     Returns:
         Tuple[List[str], List[str], str, str]: (命中文件列表, 未命中文件列表, 命中目录, 未命中目录)
@@ -277,7 +464,7 @@ def find_and_move_files_from_archive(archive_path: str, keywords: List[str]) -> 
 
         # 分类并移动文件
         matched_files, unmatched_files = classify_and_move_files(
-            temp_extract_dir, keywords, matched_dir, unmatched_dir
+            temp_extract_dir, keywords, matched_dir, unmatched_dir, filters, operation
         )
 
         logger.info(f"处理完成 - 命中文件: {len(matched_files)}, 未命中文件: {len(unmatched_files)}")
@@ -414,13 +601,15 @@ def count_matching_files(root_dir: str, keywords: List[str]) -> int:
     return count
 
 
-def count_matching_files_in_archive(archive_path: str, keywords: List[str]) -> Tuple[int, int]:
+def count_matching_files_in_archive(archive_path: str, keywords: List[str],
+                                   filters: Optional[Dict[str, Any]] = None) -> Tuple[int, int]:
     """
     统计压缩包中匹配和未匹配关键字的文件数量（预览功能）
 
     Args:
         archive_path: 压缩包路径
         keywords: 关键字列表
+        filters: 过滤条件字典
 
     Returns:
         Tuple[int, int]: (匹配文件数量, 未匹配文件数量)
@@ -429,6 +618,15 @@ def count_matching_files_in_archive(archive_path: str, keywords: List[str]) -> T
 
     if not validate_archive(archive_path) or not keywords:
         return 0, 0
+
+    # 解析过滤条件
+    if filters is None:
+        filters = {}
+
+    use_regex = filters.get("use_regex", False)
+    file_types = filters.get("file_types", [])
+    size_filter = filters.get("size_filter", {})
+    date_filter = filters.get("date_filter", {})
 
     temp_extract_dir = None
     try:
@@ -441,8 +639,32 @@ def count_matching_files_in_archive(archive_path: str, keywords: List[str]) -> T
         # 遍历所有文件进行统计
         for dirpath, _, filenames in os.walk(temp_extract_dir):
             for filename in filenames:
-                is_matched = any(keyword.strip().lower() in filename.lower()
-                               for keyword in keywords if keyword.strip())
+                src_file = os.path.join(dirpath, filename)
+
+                # 应用文件类型过滤
+                if not filter_by_file_type(filename, file_types):
+                    continue
+
+                # 应用文件大小过滤
+                if size_filter.get("enabled", False):
+                    min_size = size_filter.get("min_size", 0)
+                    max_size = size_filter.get("max_size", 0)
+                    if not filter_by_size(src_file, min_size, max_size):
+                        continue
+
+                # 应用日期过滤
+                if date_filter.get("enabled", False):
+                    start_date = date_filter.get("start_date")
+                    end_date = date_filter.get("end_date")
+                    if start_date:
+                        start_date = datetime.fromisoformat(start_date) if isinstance(start_date, str) else start_date
+                    if end_date:
+                        end_date = datetime.fromisoformat(end_date) if isinstance(end_date, str) else end_date
+                    if not filter_by_date(src_file, start_date, end_date):
+                        continue
+
+                # 检查关键字匹配
+                is_matched = match_keywords(filename, keywords, use_regex)
 
                 if is_matched:
                     matched_count += 1

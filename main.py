@@ -7,13 +7,15 @@ from utils import (find_and_move_files, validate_directory, count_matching_files
                    find_and_move_files_from_archive, validate_archive,
                    count_matching_files_in_archive, cleanup_temp_directory,
                    setup_logging, initialize_project_directories)
+from config_manager import ConfigManager
+from advanced_gui import FileTypeSelector, AdvancedFilters
 
 
 class FileFilterApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("文件筛选与移动工具 - 支持压缩包 v2.0")
-        self.root.geometry("700x500")
+        self.root.title("文件筛选与移动工具 v4.0 - 高级版")
+        self.root.geometry("900x700")
         self.root.resizable(True, True)
 
         # 设置窗口图标（如果有的话）
@@ -22,9 +24,12 @@ class FileFilterApp:
         except:
             pass
 
+        # 初始化配置管理器
+        self.config_manager = ConfigManager()
+
         # 初始化日志系统
         self.logger = setup_logging()
-        self.logger.info("程序启动")
+        self.logger.info("程序启动 v4.0")
 
         # 初始化项目目录
         try:
@@ -37,7 +42,45 @@ class FileFilterApp:
         # 添加临时目录跟踪
         self.temp_extract_dir = None
 
+        # 加载用户配置
+        self.load_user_settings()
+
         self.setup_ui()
+
+    def load_user_settings(self):
+        """加载用户设置"""
+        try:
+            # 加载窗口几何信息
+            geometry = self.config_manager.get("user_preferences.ui_settings.window_geometry", "900x700")
+            self.root.geometry(geometry)
+
+            self.logger.info("用户设置加载完成")
+        except Exception as e:
+            self.logger.error(f"加载用户设置失败: {e}")
+
+    def save_user_settings(self):
+        """保存用户设置"""
+        try:
+            # 保存窗口几何信息
+            self.config_manager.set("user_preferences.ui_settings.window_geometry", self.root.geometry())
+
+            # 保存其他设置
+            if hasattr(self, 'operation_var'):
+                self.config_manager.set("user_preferences.operation_mode", self.operation_var.get())
+
+            if hasattr(self, 'advanced_filters'):
+                filters = self.advanced_filters.get_filters()
+                self.config_manager.set("user_preferences.regex_mode", filters.get("use_regex", False))
+
+            # 保存关键字历史
+            keywords = self.get_keywords()
+            if keywords:
+                self.config_manager.add_keyword_to_history(keywords)
+
+            self.config_manager.save_config()
+            self.logger.info("用户设置保存完成")
+        except Exception as e:
+            self.logger.error(f"保存用户设置失败: {e}")
 
     def setup_ui(self):
         """设置用户界面"""
@@ -60,7 +103,20 @@ class FileFilterApp:
         ttk.Button(main_frame, text="浏览", command=self.select_archive).grid(row=1, column=2, sticky=tk.W)
 
         # 关键字输入区域
-        ttk.Label(main_frame, text="输入关键字 (每行一个关键字):").grid(row=2, column=0, columnspan=3, sticky=tk.W, pady=(20, 5))
+        keyword_label_frame = ttk.Frame(main_frame)
+        keyword_label_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(20, 5))
+
+        ttk.Label(keyword_label_frame, text="输入关键字 (每行一个关键字):").pack(side=tk.LEFT)
+
+        # 关键字历史下拉菜单
+        self.history_var = tk.StringVar()
+        history_combo = ttk.Combobox(keyword_label_frame, textvariable=self.history_var, width=20, state="readonly")
+        history_combo.pack(side=tk.RIGHT, padx=(10, 0))
+        history_combo.bind('<<ComboboxSelected>>', self.on_history_selected)
+
+        # 加载关键字历史
+        history = self.config_manager.get("user_preferences.keywords_history", [])
+        history_combo['values'] = history
 
         # 创建多行文本框
         keyword_frame = ttk.Frame(main_frame)
@@ -74,12 +130,31 @@ class FileFilterApp:
         self.keyword_text.grid(row=0, column=0, sticky=(tk.W, tk.E))
         keyword_scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
 
+        # 操作模式选择
+        operation_frame = ttk.LabelFrame(main_frame, text="操作模式", padding="5")
+        operation_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+
+        self.operation_var = tk.StringVar(value=self.config_manager.get("user_preferences.operation_mode", "move"))
+
+        ttk.Radiobutton(operation_frame, text="移动文件", variable=self.operation_var, value="move").pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Radiobutton(operation_frame, text="复制文件", variable=self.operation_var, value="copy").pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Radiobutton(operation_frame, text="创建链接", variable=self.operation_var, value="link").pack(side=tk.LEFT)
+
+        # 高级过滤器
+        self.advanced_filters = AdvancedFilters(main_frame)
+        self.advanced_filters.frame.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+
+        # 文件类型选择器
+        file_type_presets = self.config_manager.get_file_type_presets()
+        self.file_type_selector = FileTypeSelector(main_frame, file_type_presets, self.on_filter_changed)
+        self.file_type_selector.frame.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+
         # 预览按钮
-        ttk.Button(main_frame, text="预览匹配文件数", command=self.preview_files).grid(row=4, column=0, sticky=tk.W, pady=(0, 10))
+        ttk.Button(main_frame, text="预览匹配文件数", command=self.preview_files).grid(row=7, column=0, sticky=tk.W, pady=(0, 10))
 
         # 操作按钮区域
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=5, column=0, columnspan=3, pady=(10, 0))
+        button_frame.grid(row=8, column=0, columnspan=3, pady=(10, 0))
 
         self.start_button = ttk.Button(button_frame, text="开始处理", command=self.start_processing)
         self.start_button.pack(side=tk.LEFT, padx=(0, 10))
@@ -88,21 +163,21 @@ class FileFilterApp:
 
         # 进度条
         self.progress_var = tk.StringVar(value="就绪")
-        ttk.Label(main_frame, textvariable=self.progress_var).grid(row=6, column=0, columnspan=3, sticky=tk.W, pady=(20, 5))
+        ttk.Label(main_frame, textvariable=self.progress_var).grid(row=9, column=0, columnspan=3, sticky=tk.W, pady=(20, 5))
 
         self.progress_bar = ttk.Progressbar(main_frame, mode='indeterminate')
-        self.progress_bar.grid(row=7, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+        self.progress_bar.grid(row=10, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
 
         # 结果显示区域
-        ttk.Label(main_frame, text="操作日志:").grid(row=8, column=0, columnspan=3, sticky=tk.W, pady=(10, 5))
+        ttk.Label(main_frame, text="操作日志:").grid(row=11, column=0, columnspan=3, sticky=tk.W, pady=(10, 5))
 
         # 创建文本框和滚动条
         text_frame = ttk.Frame(main_frame)
-        text_frame.grid(row=9, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
+        text_frame.grid(row=12, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
         text_frame.columnconfigure(0, weight=1)
         text_frame.rowconfigure(0, weight=1)
 
-        self.log_text = tk.Text(text_frame, height=8, wrap=tk.WORD)
+        self.log_text = tk.Text(text_frame, height=6, wrap=tk.WORD)
         scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=self.log_text.yview)
         self.log_text.configure(yscrollcommand=scrollbar.set)
 
@@ -110,10 +185,35 @@ class FileFilterApp:
         scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
 
         # 配置主框架的行权重
-        main_frame.rowconfigure(9, weight=1)
+        main_frame.rowconfigure(12, weight=1)
 
         # 绑定Ctrl+Enter快捷键
         self.keyword_text.bind('<Control-Return>', lambda e: self.start_processing())
+
+        # 加载用户偏好设置
+        self.load_user_preferences()
+
+    def load_user_preferences(self):
+        """加载用户偏好设置"""
+        try:
+            # 设置正则表达式模式
+            regex_mode = self.config_manager.get("user_preferences.regex_mode", False)
+            if hasattr(self.advanced_filters, 'regex_var'):
+                self.advanced_filters.regex_var.set(regex_mode)
+        except Exception as e:
+            self.logger.error(f"加载用户偏好失败: {e}")
+
+    def on_history_selected(self, event):
+        """历史记录选择事件"""
+        selected = self.history_var.get()
+        if selected:
+            self.keyword_text.delete(1.0, tk.END)
+            self.keyword_text.insert(1.0, selected)
+
+    def on_filter_changed(self):
+        """过滤器改变事件"""
+        # 可以在这里添加实时预览等功能
+        pass
 
     def select_archive(self):
         """选择压缩包"""
