@@ -16,7 +16,7 @@ from password_manager import PasswordManager
 class FileFilterApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("文件筛选与移动工具 v4.0 - 专业版")
+        self.root.title("文件筛选与移动工具 v4.0")
         self.root.geometry("1200x800")
         self.root.resizable(True, True)
 
@@ -58,13 +58,69 @@ class FileFilterApp:
     def load_user_settings(self):
         """加载用户设置"""
         try:
-            # 加载窗口几何信息
-            geometry = self.config_manager.get("user_preferences.ui_settings.window_geometry", "900x700")
+            # 获取屏幕尺寸
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
+
+            # 计算合适的默认窗口大小 (屏幕的70-80%)
+            default_width = min(1200, int(screen_width * 0.75))
+            default_height = min(800, int(screen_height * 0.75))
+            default_geometry = f"{default_width}x{default_height}"
+
+            # 加载用户保存的窗口几何信息，如果没有则使用智能默认值
+            geometry = self.config_manager.get("user_preferences.ui_settings.window_geometry", default_geometry)
+
+            # 验证几何信息是否合理
+            try:
+                # 解析几何字符串
+                if 'x' in geometry and '+' not in geometry and '-' not in geometry:
+                    width, height = map(int, geometry.split('x'))
+                    # 确保窗口大小在合理范围内
+                    width = max(800, min(width, screen_width - 100))  # 最小800px，最大不超过屏幕
+                    height = max(600, min(height, screen_height - 100))  # 最小600px，最大不超过屏幕
+                    geometry = f"{width}x{height}"
+                else:
+                    geometry = default_geometry
+            except:
+                geometry = default_geometry
+
             self.root.geometry(geometry)
 
-            self.logger.info("用户设置加载完成")
+            # 设置最小窗口大小
+            self.root.minsize(800, 600)
+
+            # 居中显示窗口
+            self.center_window()
+
+            self.logger.info(f"用户设置加载完成，窗口大小: {geometry}")
         except Exception as e:
             self.logger.error(f"加载用户设置失败: {e}")
+
+    def center_window(self):
+        """将窗口居中显示"""
+        try:
+            self.root.update_idletasks()
+
+            # 获取窗口尺寸
+            window_width = self.root.winfo_width()
+            window_height = self.root.winfo_height()
+
+            # 获取屏幕尺寸
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
+
+            # 计算居中位置
+            x = (screen_width - window_width) // 2
+            y = (screen_height - window_height) // 2
+
+            # 确保窗口不会超出屏幕边界
+            x = max(0, min(x, screen_width - window_width))
+            y = max(0, min(y, screen_height - window_height))
+
+            # 设置窗口位置
+            self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        except Exception as e:
+            self.logger.debug(f"窗口居中失败: {e}")
 
     def save_user_settings(self):
         """保存用户设置"""

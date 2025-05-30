@@ -1,17 +1,8 @@
 {
   "version": "4.0.0",
-  "last_updated": "2025-05-30T23:57:34.215516",
+  "last_updated": "2025-05-31T00:19:53.764187",
   "user_preferences": {
-    "keywords_history": [
-      "上海二有餐饮管理有限公司",
-      "深圳市创浩仕科技有限公司",
-      "莱芜信誉楼百货有限公司",
-      "成都惠智久科计量检测技术有限公司",
-      "闽南师范大学",
-      "湖南宏旺新材料科技有限公司",
-      "深圳技术大学",
-      "新丰电器(深圳)有限公司"
-    ],
+    "keywords_history": [],
     "file_types": {
       "enabled": false,
       "selected_types": [],
@@ -32,7 +23,7 @@
       }
     },
     "ui_settings": {
-      "window_geometry": "1920x856+34+57",
+      "window_geometry": "1400x900+260+90",
       "remember_last_archive": true,
       "auto_preview": false
     }
