@@ -1,0 +1,92 @@
+{
+  "version": "4.0.0",
+  "last_updated": "2025-05-30T21:48:24.602750",
+  "user_preferences": {
+    "keywords_history": [],
+    "file_types": {
+      "enabled": false,
+      "selected_types": [],
+      "custom_types": []
+    },
+    "regex_mode": false,
+    "operation_mode": "move",
+    "file_filters": {
+      "size_filter": {
+        "enabled": false,
+        "min_size": 0,
+        "max_size": 0
+      },
+      "date_filter": {
+        "enabled": false,
+        "start_date": null,
+        "end_date": null
+      }
+    },
+    "ui_settings": {
+      "window_geometry": "700x600",
+      "remember_last_archive": true,
+      "auto_preview": false
+    }
+  },
+  "file_type_presets": {
+    "图片文件": [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".bmp",
+      ".tiff",
+      ".webp"
+    ],
+    "文档文件": [
+      ".doc",
+      ".docx",
+      ".pdf",
+      ".txt",
+      ".rtf",
+      ".odt"
+    ],
+    "表格文件": [
+      ".xls",
+      ".xlsx",
+      ".csv",
+      ".ods"
+    ],
+    "演示文件": [
+      ".ppt",
+      ".pptx",
+      ".odp"
+    ],
+    "视频文件": [
+      ".mp4",
+      ".avi",
+      ".mkv",
+      ".mov",
+      ".wmv",
+      ".flv"
+    ],
+    "音频文件": [
+      ".mp3",
+      ".wav",
+      ".flac",
+      ".aac",
+      ".ogg"
+    ],
+    "压缩文件": [
+      ".zip",
+      ".rar",
+      ".7z",
+      ".tar",
+      ".gz"
+    ],
+    "代码文件": [
+      ".py",
+      ".js",
+      ".html",
+      ".css",
+      ".java",
+      ".cpp",
+      ".c"
+    ]
+  }
+}

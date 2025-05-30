@@ -8,14 +8,14 @@ from utils import (find_and_move_files, validate_directory, count_matching_files
                    count_matching_files_in_archive, cleanup_temp_directory,
                    setup_logging, initialize_project_directories)
 from config_manager import ConfigManager
-from advanced_gui import FileTypeSelector, AdvancedFilters
+from advanced_gui import FileTypeSelector, AdvancedFilters, DragDropFrame, ArchivePreview
 
 
 class FileFilterApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("文件筛选与移动工具 v4.0 - 高级版")
-        self.root.geometry("900x700")
+        self.root.title("文件筛选与移动工具 v4.0 - 专业版")
+        self.root.geometry("1200x800")
         self.root.resizable(True, True)
 
         # 设置窗口图标（如果有的话）
@@ -84,55 +84,90 @@ class FileFilterApp:
 
     def setup_ui(self):
         """设置用户界面"""
-        # 主框架
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        # 创建主要的PanedWindow来分割左右区域
+        main_paned = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        main_paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # 配置网格权重
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=1)
-        main_frame.columnconfigure(1, weight=1)
+        # 左侧面板（控制区域）
+        left_frame = ttk.Frame(main_paned, padding="5")
+        main_paned.add(left_frame, weight=1)
 
-        # 压缩包选择区域
-        ttk.Label(main_frame, text="选择压缩包 (支持 .zip, .rar, .7z):").grid(row=0, column=0, columnspan=3, sticky=tk.W, pady=(0, 5))
+        # 右侧面板（预览区域）
+        right_frame = ttk.Frame(main_paned, padding="5")
+        main_paned.add(right_frame, weight=1)
+
+        # 设置左侧面板内容
+        self.setup_left_panel(left_frame)
+
+        # 设置右侧面板内容
+        self.setup_right_panel(right_frame)
+
+    def setup_left_panel(self, parent):
+        """设置左侧控制面板"""
+        # 使用滚动框架
+        canvas = tk.Canvas(parent)
+        scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # 拖拽区域
+        self.drag_drop_frame = DragDropFrame(scrollable_frame, self.on_archive_dropped)
+        self.drag_drop_frame.frame.pack(fill="x", pady=(0, 10))
+
+        # 传统文件选择
+        file_select_frame = ttk.LabelFrame(scrollable_frame, text="或选择压缩包文件", padding="5")
+        file_select_frame.pack(fill="x", pady=(0, 10))
 
         self.archive_var = tk.StringVar()
-        self.archive_entry = ttk.Entry(main_frame, textvariable=self.archive_var, width=50)
-        self.archive_entry.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), padx=(0, 5))
+        self.archive_entry = ttk.Entry(file_select_frame, textvariable=self.archive_var, width=40)
+        self.archive_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
-        ttk.Button(main_frame, text="浏览", command=self.select_archive).grid(row=1, column=2, sticky=tk.W)
+        ttk.Button(file_select_frame, text="浏览", command=self.select_archive).pack(side="right")
 
         # 关键字输入区域
-        keyword_label_frame = ttk.Frame(main_frame)
-        keyword_label_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(20, 5))
+        keyword_frame = ttk.LabelFrame(scrollable_frame, text="关键字设置", padding="5")
+        keyword_frame.pack(fill="x", pady=(0, 10))
 
-        ttk.Label(keyword_label_frame, text="输入关键字 (每行一个关键字):").pack(side=tk.LEFT)
+        # 关键字历史
+        history_frame = ttk.Frame(keyword_frame)
+        history_frame.pack(fill="x", pady=(0, 5))
 
-        # 关键字历史下拉菜单
+        ttk.Label(history_frame, text="历史记录:").pack(side="left")
         self.history_var = tk.StringVar()
-        history_combo = ttk.Combobox(keyword_label_frame, textvariable=self.history_var, width=20, state="readonly")
-        history_combo.pack(side=tk.RIGHT, padx=(10, 0))
+        history_combo = ttk.Combobox(history_frame, textvariable=self.history_var, width=25, state="readonly")
+        history_combo.pack(side="right")
         history_combo.bind('<<ComboboxSelected>>', self.on_history_selected)
 
         # 加载关键字历史
         history = self.config_manager.get("user_preferences.keywords_history", [])
         history_combo['values'] = history
 
-        # 创建多行文本框
-        keyword_frame = ttk.Frame(main_frame)
-        keyword_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
-        keyword_frame.columnconfigure(0, weight=1)
+        # 多行关键字输入
+        ttk.Label(keyword_frame, text="输入关键字 (每行一个):").pack(anchor="w", pady=(5, 2))
 
-        self.keyword_text = tk.Text(keyword_frame, height=4, wrap=tk.WORD)
-        keyword_scrollbar = ttk.Scrollbar(keyword_frame, orient=tk.VERTICAL, command=self.keyword_text.yview)
+        text_frame = ttk.Frame(keyword_frame)
+        text_frame.pack(fill="x", pady=(0, 5))
+
+        self.keyword_text = tk.Text(text_frame, height=4, wrap=tk.WORD)
+        keyword_scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=self.keyword_text.yview)
         self.keyword_text.configure(yscrollcommand=keyword_scrollbar.set)
 
-        self.keyword_text.grid(row=0, column=0, sticky=(tk.W, tk.E))
-        keyword_scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        self.keyword_text.pack(side="left", fill="both", expand=True)
+        keyword_scrollbar.pack(side="right", fill="y")
 
         # 操作模式选择
-        operation_frame = ttk.LabelFrame(main_frame, text="操作模式", padding="5")
-        operation_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+        operation_frame = ttk.LabelFrame(scrollable_frame, text="操作模式", padding="5")
+        operation_frame.pack(fill="x", pady=(0, 10))
 
         self.operation_var = tk.StringVar(value=self.config_manager.get("user_preferences.operation_mode", "move"))
 
@@ -141,57 +176,76 @@ class FileFilterApp:
         ttk.Radiobutton(operation_frame, text="创建链接", variable=self.operation_var, value="link").pack(side=tk.LEFT)
 
         # 高级过滤器
-        self.advanced_filters = AdvancedFilters(main_frame)
-        self.advanced_filters.frame.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+        self.advanced_filters = AdvancedFilters(scrollable_frame)
+        self.advanced_filters.frame.pack(fill="x", pady=(0, 10))
 
         # 文件类型选择器
         file_type_presets = self.config_manager.get_file_type_presets()
-        self.file_type_selector = FileTypeSelector(main_frame, file_type_presets, self.on_filter_changed)
-        self.file_type_selector.frame.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+        self.file_type_selector = FileTypeSelector(scrollable_frame, file_type_presets, self.on_filter_changed)
+        self.file_type_selector.frame.pack(fill="x", pady=(0, 10))
 
-        # 预览按钮
-        ttk.Button(main_frame, text="预览匹配文件数", command=self.preview_files).grid(row=7, column=0, sticky=tk.W, pady=(0, 10))
+        # 控制按钮
+        button_frame = ttk.Frame(scrollable_frame)
+        button_frame.pack(fill="x", pady=(10, 0))
 
-        # 操作按钮区域
-        button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=8, column=0, columnspan=3, pady=(10, 0))
+        self.preview_button = ttk.Button(button_frame, text="预览匹配文件", command=self.preview_files)
+        self.preview_button.pack(side="left", padx=(0, 5))
 
         self.start_button = ttk.Button(button_frame, text="开始处理", command=self.start_processing)
-        self.start_button.pack(side=tk.LEFT, padx=(0, 10))
+        self.start_button.pack(side="left", padx=(0, 5))
 
-        ttk.Button(button_frame, text="清空", command=self.clear_inputs).pack(side=tk.LEFT)
+        ttk.Button(button_frame, text="清空", command=self.clear_inputs).pack(side="left")
 
-        # 进度条
+        # 进度显示
+        progress_frame = ttk.Frame(scrollable_frame)
+        progress_frame.pack(fill="x", pady=(10, 0))
+
         self.progress_var = tk.StringVar(value="就绪")
-        ttk.Label(main_frame, textvariable=self.progress_var).grid(row=9, column=0, columnspan=3, sticky=tk.W, pady=(20, 5))
+        ttk.Label(progress_frame, textvariable=self.progress_var).pack(anchor="w")
 
-        self.progress_bar = ttk.Progressbar(main_frame, mode='indeterminate')
-        self.progress_bar.grid(row=10, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
-
-        # 结果显示区域
-        ttk.Label(main_frame, text="操作日志:").grid(row=11, column=0, columnspan=3, sticky=tk.W, pady=(10, 5))
-
-        # 创建文本框和滚动条
-        text_frame = ttk.Frame(main_frame)
-        text_frame.grid(row=12, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
-        text_frame.columnconfigure(0, weight=1)
-        text_frame.rowconfigure(0, weight=1)
-
-        self.log_text = tk.Text(text_frame, height=6, wrap=tk.WORD)
-        scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=self.log_text.yview)
-        self.log_text.configure(yscrollcommand=scrollbar.set)
-
-        self.log_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
-
-        # 配置主框架的行权重
-        main_frame.rowconfigure(12, weight=1)
+        self.progress_bar = ttk.Progressbar(progress_frame, mode='indeterminate')
+        self.progress_bar.pack(fill="x", pady=(5, 0))
 
         # 绑定Ctrl+Enter快捷键
         self.keyword_text.bind('<Control-Return>', lambda e: self.start_processing())
 
         # 加载用户偏好设置
         self.load_user_preferences()
+
+    def setup_right_panel(self, parent):
+        """设置右侧预览面板"""
+        # 创建Notebook来组织不同的预览功能
+        notebook = ttk.Notebook(parent)
+        notebook.pack(fill="both", expand=True)
+
+        # 压缩包预览标签页
+        preview_frame = ttk.Frame(notebook)
+        notebook.add(preview_frame, text="压缩包预览")
+
+        self.archive_preview = ArchivePreview(preview_frame)
+        self.archive_preview.frame.pack(fill="both", expand=True)
+
+        # 操作日志标签页
+        log_frame = ttk.Frame(notebook)
+        notebook.add(log_frame, text="操作日志")
+
+        # 日志显示区域
+        log_text_frame = ttk.Frame(log_frame)
+        log_text_frame.pack(fill="both", expand=True, padx=5, pady=5)
+
+        self.log_text = tk.Text(log_text_frame, wrap=tk.WORD)
+        log_scrollbar = ttk.Scrollbar(log_text_frame, orient=tk.VERTICAL, command=self.log_text.yview)
+        self.log_text.configure(yscrollcommand=log_scrollbar.set)
+
+        self.log_text.pack(side="left", fill="both", expand=True)
+        log_scrollbar.pack(side="right", fill="y")
+
+        # 日志控制按钮
+        log_button_frame = ttk.Frame(log_frame)
+        log_button_frame.pack(fill="x", padx=5, pady=(0, 5))
+
+        ttk.Button(log_button_frame, text="清空日志", command=self.clear_log).pack(side="left")
+        ttk.Button(log_button_frame, text="保存日志", command=self.save_log).pack(side="left", padx=(5, 0))
 
     def load_user_preferences(self):
         """加载用户偏好设置"""
@@ -215,6 +269,34 @@ class FileFilterApp:
         # 可以在这里添加实时预览等功能
         pass
 
+    def on_archive_dropped(self, file_path: str):
+        """处理拖拽的压缩包文件"""
+        self.archive_var.set(file_path)
+        self.drag_drop_frame.set_file(file_path)
+        self.archive_preview.set_archive(file_path)
+        self.log_message(f"通过拖拽选择了压缩包: {os.path.basename(file_path)}")
+
+    def clear_log(self):
+        """清空日志"""
+        self.log_text.delete(1.0, tk.END)
+
+    def save_log(self):
+        """保存日志到文件"""
+        try:
+            from tkinter import filedialog
+            filename = filedialog.asksaveasfilename(
+                title="保存日志",
+                defaultextension=".txt",
+                filetypes=[("文本文件", "*.txt"), ("所有文件", "*.*")]
+            )
+            if filename:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write(self.log_text.get(1.0, tk.END))
+                self.log_message(f"日志已保存到: {filename}")
+                messagebox.showinfo("保存成功", f"日志已保存到:\n{filename}")
+        except Exception as e:
+            messagebox.showerror("保存失败", f"保存日志失败: {str(e)}")
+
     def select_archive(self):
         """选择压缩包"""
         archive_path = filedialog.askopenfilename(
@@ -229,7 +311,9 @@ class FileFilterApp:
         )
         if archive_path:
             self.archive_var.set(archive_path)
-            self.log_message(f"已选择压缩包: {archive_path}")
+            self.drag_drop_frame.set_file(archive_path)
+            self.archive_preview.set_archive(archive_path)
+            self.log_message(f"已选择压缩包: {os.path.basename(archive_path)}")
 
     def clear_inputs(self):
         """清空输入"""
@@ -237,6 +321,10 @@ class FileFilterApp:
         self.keyword_text.delete(1.0, tk.END)
         self.log_text.delete(1.0, tk.END)
         self.progress_var.set("就绪")
+
+        # 清理界面状态
+        self.drag_drop_frame.set_file("")
+        self.archive_preview.set_archive("")
 
         # 清理临时目录
         if self.temp_extract_dir:

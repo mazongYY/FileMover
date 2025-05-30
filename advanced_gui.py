@@ -7,8 +7,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import Dict, List, Any, Optional, Callable, Tuple
-from datetime import datetime
+from datetime import datetime, date
 import re
+import os
 
 
 class FileTypeSelector:
@@ -236,8 +237,35 @@ class AdvancedFilters:
 
         ttk.Label(size_frame, text="(单位: KB)", foreground="gray").grid(row=2, column=0, columnspan=4, sticky=tk.W)
 
+        # 文件时间过滤
+        date_frame = ttk.LabelFrame(self.frame, text="文件时间过滤", padding="3")
+        date_frame.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(5, 0))
+
+        self.date_enabled_var = tk.BooleanVar()
+        ttk.Checkbutton(
+            date_frame,
+            text="启用时间过滤",
+            variable=self.date_enabled_var,
+            command=self.on_date_filter_changed
+        ).grid(row=0, column=0, columnspan=4, sticky=tk.W)
+
+        # 开始日期
+        ttk.Label(date_frame, text="开始日期:").grid(row=1, column=0, sticky=tk.W, padx=(0, 5))
+        self.start_date_entry = ttk.Entry(date_frame, width=12)
+        self.start_date_entry.grid(row=1, column=1, padx=(0, 5))
+        self.start_date_entry.insert(0, "2024-01-01")
+
+        # 结束日期
+        ttk.Label(date_frame, text="结束日期:").grid(row=1, column=2, sticky=tk.W, padx=(10, 5))
+        self.end_date_entry = ttk.Entry(date_frame, width=12)
+        self.end_date_entry.grid(row=1, column=3, padx=(0, 5))
+        self.end_date_entry.insert(0, datetime.now().strftime("%Y-%m-%d"))
+
+        ttk.Label(date_frame, text="(格式: YYYY-MM-DD)", foreground="gray").grid(row=2, column=0, columnspan=4, sticky=tk.W)
+
         # 初始状态
         self.on_regex_changed()
+        self.on_date_filter_changed()
 
     def on_regex_changed(self):
         """正则表达式选项改变"""
@@ -245,6 +273,12 @@ class AdvancedFilters:
             self.regex_help.config(foreground="blue")
         else:
             self.regex_help.config(foreground="gray")
+
+    def on_date_filter_changed(self):
+        """日期过滤器选项改变"""
+        enabled = self.date_enabled_var.get()
+        self.start_date_entry.configure(state='normal' if enabled else 'disabled')
+        self.end_date_entry.configure(state='normal' if enabled else 'disabled')
 
     def get_filters(self) -> Dict[str, Any]:
         """获取过滤器设置"""
@@ -254,6 +288,11 @@ class AdvancedFilters:
                 "enabled": self.size_enabled_var.get(),
                 "min_size": 0,
                 "max_size": 0
+            },
+            "date_filter": {
+                "enabled": self.date_enabled_var.get(),
+                "start_date": None,
+                "end_date": None
             }
         }
 
@@ -267,6 +306,23 @@ class AdvancedFilters:
                 max_size_text = self.max_size_entry.get().strip()
                 if max_size_text:
                     filters["size_filter"]["max_size"] = int(float(max_size_text) * 1024)  # KB to bytes
+            except ValueError:
+                pass  # 忽略无效输入
+
+        # 解析日期
+        if self.date_enabled_var.get():
+            try:
+                start_date_text = self.start_date_entry.get().strip()
+                if start_date_text:
+                    start_date = datetime.strptime(start_date_text, "%Y-%m-%d")
+                    filters["date_filter"]["start_date"] = start_date.isoformat()
+
+                end_date_text = self.end_date_entry.get().strip()
+                if end_date_text:
+                    end_date = datetime.strptime(end_date_text, "%Y-%m-%d")
+                    # 设置为当天的23:59:59
+                    end_date = end_date.replace(hour=23, minute=59, second=59)
+                    filters["date_filter"]["end_date"] = end_date.isoformat()
             except ValueError:
                 pass  # 忽略无效输入
 
@@ -284,3 +340,193 @@ class AdvancedFilters:
                     return False, f"关键字 '{keyword}' {error}"
 
         return True, ""
+
+
+class DragDropFrame:
+    """文件选择提示框架（简化版）"""
+
+    def __init__(self, parent, callback: Optional[Callable] = None):
+        self.parent = parent
+        self.callback = callback
+
+        self.frame = ttk.LabelFrame(parent, text="压缩包选择提示", padding="10")
+        self.setup_ui()
+
+    def setup_ui(self):
+        """设置界面"""
+        # 提示区域
+        self.drop_label = ttk.Label(
+            self.frame,
+            text="📦 请使用下方按钮选择压缩包文件\n支持格式: .zip, .rar, .7z",
+            font=("TkDefaultFont", 10),
+            foreground="gray",
+            anchor="center"
+        )
+        self.drop_label.pack(expand=True, fill="both", pady=10)
+
+        # 状态标签
+        self.status_label = ttk.Label(self.frame, text="", foreground="blue")
+        self.status_label.pack(pady=(0, 5))
+
+        # 提示信息
+        tip_label = ttk.Label(
+            self.frame,
+            text="💡 提示: 选择压缩包后可在右侧预览内容",
+            font=("TkDefaultFont", 8),
+            foreground="gray"
+        )
+        tip_label.pack()
+
+    def set_file(self, file_path: str):
+        """设置文件路径"""
+        if file_path:
+            self.status_label.config(
+                text=f"✅ 已选择: {os.path.basename(file_path)}",
+                foreground="green"
+            )
+        else:
+            self.status_label.config(text="", foreground="blue")
+
+
+class ArchivePreview:
+    """压缩包内容预览"""
+
+    def __init__(self, parent):
+        self.parent = parent
+        self.frame = ttk.LabelFrame(parent, text="压缩包内容预览", padding="5")
+        self.setup_ui()
+
+    def setup_ui(self):
+        """设置界面"""
+        # 控制按钮
+        button_frame = ttk.Frame(self.frame)
+        button_frame.pack(fill="x", pady=(0, 5))
+
+        self.preview_button = ttk.Button(
+            button_frame,
+            text="预览内容",
+            command=self.preview_content
+        )
+        self.preview_button.pack(side=tk.LEFT)
+
+        self.refresh_button = ttk.Button(
+            button_frame,
+            text="刷新",
+            command=self.refresh_preview
+        )
+        self.refresh_button.pack(side=tk.LEFT, padx=(5, 0))
+
+        # 统计信息
+        self.stats_label = ttk.Label(self.frame, text="", foreground="gray")
+        self.stats_label.pack(anchor="w", pady=(0, 5))
+
+        # 文件列表
+        list_frame = ttk.Frame(self.frame)
+        list_frame.pack(fill="both", expand=True)
+
+        # 创建Treeview
+        self.tree = ttk.Treeview(
+            list_frame,
+            columns=("size", "type", "modified"),
+            show="tree headings",
+            height=8
+        )
+
+        # 设置列
+        self.tree.heading("#0", text="文件名")
+        self.tree.heading("size", text="大小")
+        self.tree.heading("type", text="类型")
+        self.tree.heading("modified", text="修改时间")
+
+        self.tree.column("#0", width=200)
+        self.tree.column("size", width=80)
+        self.tree.column("type", width=60)
+        self.tree.column("modified", width=120)
+
+        # 滚动条
+        scrollbar_v = ttk.Scrollbar(list_frame, orient="vertical", command=self.tree.yview)
+        scrollbar_h = ttk.Scrollbar(list_frame, orient="horizontal", command=self.tree.xview)
+        self.tree.configure(yscrollcommand=scrollbar_v.set, xscrollcommand=scrollbar_h.set)
+
+        # 布局
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        scrollbar_v.grid(row=0, column=1, sticky="ns")
+        scrollbar_h.grid(row=1, column=0, sticky="ew")
+
+        list_frame.grid_rowconfigure(0, weight=1)
+        list_frame.grid_columnconfigure(0, weight=1)
+
+        # 初始状态
+        self.archive_path = None
+        self.preview_button.configure(state="disabled")
+        self.refresh_button.configure(state="disabled")
+
+    def set_archive(self, archive_path: str):
+        """设置压缩包路径"""
+        self.archive_path = archive_path
+        if archive_path and os.path.exists(archive_path):
+            self.preview_button.configure(state="normal")
+            self.refresh_button.configure(state="normal")
+            self.stats_label.config(text=f"压缩包: {os.path.basename(archive_path)}")
+        else:
+            self.preview_button.configure(state="disabled")
+            self.refresh_button.configure(state="disabled")
+            self.stats_label.config(text="")
+            self.clear_preview()
+
+    def preview_content(self):
+        """预览压缩包内容"""
+        if not self.archive_path:
+            return
+
+        try:
+            from utils import get_archive_file_list
+            files_info = get_archive_file_list(self.archive_path)
+            self.display_files(files_info)
+        except Exception as e:
+            messagebox.showerror("预览失败", f"无法预览压缩包内容: {str(e)}")
+
+    def refresh_preview(self):
+        """刷新预览"""
+        self.preview_content()
+
+    def display_files(self, files_info: List[Dict[str, Any]]):
+        """显示文件列表"""
+        # 清空现有内容
+        self.clear_preview()
+
+        # 统计信息
+        total_files = len(files_info)
+        total_size = sum(info.get('size', 0) for info in files_info)
+        size_text = self.format_size(total_size)
+
+        self.stats_label.config(
+            text=f"文件总数: {total_files}, 总大小: {size_text}",
+            foreground="black"
+        )
+
+        # 添加文件到树形视图
+        for info in files_info:
+            name = info.get('name', '')
+            size = self.format_size(info.get('size', 0))
+            file_type = info.get('type', '')
+            modified = info.get('modified', '')
+
+            self.tree.insert("", "end", text=name, values=(size, file_type, modified))
+
+    def clear_preview(self):
+        """清空预览"""
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+    def format_size(self, size_bytes: int) -> str:
+        """格式化文件大小"""
+        if size_bytes == 0:
+            return "0 B"
+
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size_bytes < 1024:
+                return f"{size_bytes:.1f} {unit}"
+            size_bytes /= 1024
+
+        return f"{size_bytes:.1f} TB"

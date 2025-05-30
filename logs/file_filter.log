@@ -5,3 +5,51 @@
 2025-05-30 21:45:55 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\temp_extract
 2025-05-30 21:45:55 - FileFilterTool - INFO - 项目目录初始化完成
 2025-05-30 21:45:55 - FileFilterTool - INFO - 用户设置加载完成
+2025-05-30 21:47:04 - FileFilterTool - DEBUG - 文件已复制: test.txt
+2025-05-30 21:47:04 - FileFilterTool - DEBUG - 文件已移动: test_copy.txt
+2025-05-30 21:47:04 - FileFilterTool.Config - INFO - 配置文件不存在，使用默认配置
+2025-05-30 21:47:04 - FileFilterTool.Config - INFO - 配置文件保存成功: C:\Users\GuoDong\AppData\Local\Temp\tmp14ag076j.json
+2025-05-30 21:47:04 - FileFilterTool.Config - INFO - 配置文件加载成功: C:\Users\GuoDong\AppData\Local\Temp\tmp14ag076j.json
+2025-05-30 21:47:04 - FileFilterTool - INFO - 开始解压 .zip 格式的压缩包: tmphojo5v6v.zip
+2025-05-30 21:47:04 - FileFilterTool - INFO - ZIP文件解压完成，文件数量: 10
+2025-05-30 21:47:04 - FileFilterTool - INFO - 解压成功到目录: F:\Project\tools\temp_extract\extract_20250530_214704
+2025-05-30 21:47:04 - FileFilterTool - INFO - 预览统计完成 - 命中: 2, 未命中: 8
+2025-05-30 21:47:04 - FileFilterTool - INFO - 开始解压 .zip 格式的压缩包: tmphojo5v6v.zip
+2025-05-30 21:47:04 - FileFilterTool - INFO - ZIP文件解压完成，文件数量: 10
+2025-05-30 21:47:04 - FileFilterTool - INFO - 解压成功到目录: F:\Project\tools\temp_extract\extract_20250530_214704
+2025-05-30 21:47:04 - FileFilterTool - INFO - 预览统计完成 - 命中: 2, 未命中: 8
+2025-05-30 21:47:04 - FileFilterTool - INFO - 开始解压 .zip 格式的压缩包: tmphojo5v6v.zip
+2025-05-30 21:47:04 - FileFilterTool - INFO - ZIP文件解压完成，文件数量: 10
+2025-05-30 21:47:04 - FileFilterTool - INFO - 解压成功到目录: F:\Project\tools\temp_extract\extract_20250530_214704
+2025-05-30 21:47:04 - FileFilterTool - INFO - 预览统计完成 - 命中: 1, 未命中: 2
+2025-05-30 21:57:14 - FileFilterTool - INFO - 程序启动 v4.0
+2025-05-30 21:57:14 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\extracted_files
+2025-05-30 21:57:14 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\extracted_files\命中文件
+2025-05-30 21:57:14 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\extracted_files\未命中文件
+2025-05-30 21:57:14 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\temp_extract
+2025-05-30 21:57:14 - FileFilterTool - INFO - 项目目录初始化完成
+2025-05-30 21:57:14 - FileFilterTool - INFO - 用户设置加载完成
+2025-05-30 21:58:26 - FileFilterTool - INFO - 获取压缩包文件列表成功，文件数量: 6
+2025-05-30 21:58:26 - FileFilterTool - INFO - 开始解压 .zip 格式的压缩包: tmpx3d17y2z.zip
+2025-05-30 21:58:26 - FileFilterTool - INFO - ZIP文件解压完成，文件数量: 6
+2025-05-30 21:58:26 - FileFilterTool - INFO - 解压成功到目录: F:\Project\tools\temp_extract\extract_20250530_215826
+2025-05-30 21:58:26 - FileFilterTool - INFO - 预览统计完成 - 命中: 2, 未命中: 4
+2025-05-30 21:58:26 - FileFilterTool - INFO - 开始解压 .zip 格式的压缩包: tmpx3d17y2z.zip
+2025-05-30 21:58:26 - FileFilterTool - INFO - ZIP文件解压完成，文件数量: 6
+2025-05-30 21:58:26 - FileFilterTool - INFO - 解压成功到目录: F:\Project\tools\temp_extract\extract_20250530_215826
+2025-05-30 21:58:26 - FileFilterTool - INFO - 预览统计完成 - 命中: 1, 未命中: 1
+2025-05-30 21:58:26 - FileFilterTool - INFO - 开始解压 .zip 格式的压缩包: tmpx3d17y2z.zip
+2025-05-30 21:58:26 - FileFilterTool - INFO - ZIP文件解压完成，文件数量: 6
+2025-05-30 21:58:26 - FileFilterTool - INFO - 解压成功到目录: F:\Project\tools\temp_extract\extract_20250530_215826
+2025-05-30 21:58:26 - FileFilterTool - INFO - 预览统计完成 - 命中: 0, 未命中: 0
+2025-05-30 21:58:26 - FileFilterTool - INFO - 开始解压 .zip 格式的压缩包: tmpx3d17y2z.zip
+2025-05-30 21:58:26 - FileFilterTool - INFO - ZIP文件解压完成，文件数量: 6
+2025-05-30 21:58:26 - FileFilterTool - INFO - 解压成功到目录: F:\Project\tools\temp_extract\extract_20250530_215826
+2025-05-30 21:58:26 - FileFilterTool - INFO - 预览统计完成 - 命中: 0, 未命中: 0
+2025-05-30 21:58:39 - FileFilterTool - INFO - 程序启动 v4.0
+2025-05-30 21:58:39 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\extracted_files
+2025-05-30 21:58:39 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\extracted_files\命中文件
+2025-05-30 21:58:39 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\extracted_files\未命中文件
+2025-05-30 21:58:39 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\temp_extract
+2025-05-30 21:58:39 - FileFilterTool - INFO - 项目目录初始化完成
+2025-05-30 21:58:39 - FileFilterTool - INFO - 用户设置加载完成

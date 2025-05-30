@@ -696,3 +696,74 @@ def cleanup_temp_directory(temp_dir: str) -> None:
             shutil.rmtree(temp_dir, ignore_errors=True)
         except Exception:
             pass  # 忽略清理错误
+
+
+def get_archive_file_list(archive_path: str) -> List[Dict[str, Any]]:
+    """
+    获取压缩包文件列表（不解压）
+
+    Args:
+        archive_path: 压缩包路径
+
+    Returns:
+        List[Dict[str, Any]]: 文件信息列表
+
+    Raises:
+        ValueError: 不支持的压缩格式
+        OSError: 读取失败
+    """
+    logger = logging.getLogger("FileFilterTool")
+
+    if not os.path.exists(archive_path):
+        raise ValueError(f"压缩包不存在: {archive_path}")
+
+    _, ext = os.path.splitext(archive_path.lower())
+    files_info = []
+
+    try:
+        if ext == '.zip':
+            with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                for info in zip_ref.infolist():
+                    if not info.is_dir():  # 只处理文件，不处理目录
+                        file_info = {
+                            'name': info.filename,
+                            'size': info.file_size,
+                            'type': os.path.splitext(info.filename)[1].lower(),
+                            'modified': datetime(*info.date_time).strftime('%Y-%m-%d %H:%M:%S') if info.date_time else ''
+                        }
+                        files_info.append(file_info)
+
+        elif ext == '.rar':
+            with rarfile.RarFile(archive_path, 'r') as rar_ref:
+                for info in rar_ref.infolist():
+                    if not info.is_dir():
+                        file_info = {
+                            'name': info.filename,
+                            'size': info.file_size,
+                            'type': os.path.splitext(info.filename)[1].lower(),
+                            'modified': info.date_time.strftime('%Y-%m-%d %H:%M:%S') if info.date_time else ''
+                        }
+                        files_info.append(file_info)
+
+        elif ext == '.7z':
+            with py7zr.SevenZipFile(archive_path, mode='r') as archive:
+                for info in archive.list():
+                    if not info.is_directory:
+                        file_info = {
+                            'name': info.filename,
+                            'size': info.uncompressed if hasattr(info, 'uncompressed') else 0,
+                            'type': os.path.splitext(info.filename)[1].lower(),
+                            'modified': info.creationtime.strftime('%Y-%m-%d %H:%M:%S') if hasattr(info, 'creationtime') and info.creationtime else ''
+                        }
+                        files_info.append(file_info)
+
+        else:
+            raise ValueError(f"不支持的压缩格式: {ext}")
+
+        logger.info(f"获取压缩包文件列表成功，文件数量: {len(files_info)}")
+        return files_info
+
+    except Exception as e:
+        error_msg = f"读取压缩包文件列表失败: {e}"
+        logger.error(error_msg)
+        raise OSError(error_msg)
