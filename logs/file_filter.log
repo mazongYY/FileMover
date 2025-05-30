@@ -92,3 +92,13 @@
 2025-05-30 22:38:40 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\temp_extract
 2025-05-30 22:38:40 - FileFilterTool - INFO - 项目目录初始化完成
 2025-05-30 22:38:40 - FileFilterTool - INFO - 用户设置加载完成
+2025-05-30 23:10:52 - FileFilterTool - INFO - 现代化UI程序启动 v4.0
+2025-05-30 23:10:52 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\extracted_files
+2025-05-30 23:10:52 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\extracted_files\命中文件
+2025-05-30 23:10:52 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\extracted_files\未命中文件
+2025-05-30 23:10:52 - FileFilterTool - INFO - 目录已创建或已存在: F:\Project\tools\temp_extract
+2025-05-30 23:10:52 - FileFilterTool - INFO - 项目目录初始化完成
+2025-05-30 23:10:52 - FileFilterTool - INFO - 用户设置加载完成
+2025-05-30 23:11:44 - FileFilterTool.Config - INFO - 配置文件保存成功: config.json
+2025-05-30 23:11:44 - FileFilterTool - INFO - 用户设置保存完成
+2025-05-30 23:11:44 - FileFilterTool - INFO - 用户关闭程序
