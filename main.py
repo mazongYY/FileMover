@@ -362,46 +362,71 @@ class FileFilterApp:
 
     def start_processing(self):
         """开始处理文件"""
+        if not self.validate_inputs():
+            return
+
         archive_path = self.archive_var.get().strip()
         keywords = self.get_keywords()
-
-        if not archive_path or not keywords:
-            messagebox.showwarning("输入错误", "请选择压缩包并输入关键字")
-            return
-
-        if not validate_archive(archive_path):
-            messagebox.showerror("错误", "选择的压缩包无效或不支持的格式")
-            return
+        operation = self.operation_var.get()
+        filters = self.get_current_filters()
 
         # 确认操作
-        result = messagebox.askyesno("确认操作",
-                                   f"将要解压压缩包 '{os.path.basename(archive_path)}' 并搜索包含关键字的文件，"
-                                   f"然后移动到桌面。\n\n关键字列表:\n{chr(10).join(keywords)}\n\n确定要继续吗？")
+        operation_text = {"move": "移动", "copy": "复制", "link": "创建链接"}[operation]
+        filter_info = []
+
+        if filters.get("use_regex"):
+            filter_info.append("使用正则表达式")
+        if filters.get("file_types"):
+            filter_info.append(f"文件类型: {', '.join(filters['file_types'][:3])}...")
+
+        confirm_msg = f"将要解压压缩包 '{os.path.basename(archive_path)}' 并搜索文件，"
+        confirm_msg += f"然后{operation_text}到项目目录。\n\n"
+        confirm_msg += f"关键字列表:\n{chr(10).join(keywords[:5])}"
+        if len(keywords) > 5:
+            confirm_msg += f"\n... 还有 {len(keywords) - 5} 个关键字"
+
+        if filter_info:
+            confirm_msg += f"\n\n过滤条件: {', '.join(filter_info)}"
+
+        confirm_msg += "\n\n确定要继续吗？"
+
+        result = messagebox.askyesno("确认操作", confirm_msg)
         if not result:
             return
+
+        # 保存用户设置
+        self.save_user_settings()
 
         # 在新线程中执行处理
         self.start_button.config(state='disabled')
         self.progress_bar.start()
         self.progress_var.set("正在处理...")
 
-        thread = threading.Thread(target=self.process_files, args=(archive_path, keywords))
+        thread = threading.Thread(target=self.process_files, args=(archive_path, keywords, filters, operation))
         thread.daemon = True
         thread.start()
 
-    def process_files(self, archive_path, keywords):
+    def process_files(self, archive_path, keywords, filters, operation):
         """在后台线程中处理文件"""
         try:
             self.log_message(f"开始解压压缩包: {os.path.basename(archive_path)}")
             self.log_message(f"搜索关键字: {chr(10).join(keywords)}")
+            self.log_message(f"操作模式: {operation}")
 
-            matched_files, unmatched_files, matched_dir, unmatched_dir = find_and_move_files_from_archive(archive_path, keywords)
+            if filters.get("use_regex"):
+                self.log_message("使用正则表达式模式")
+            if filters.get("file_types"):
+                self.log_message(f"文件类型过滤: {', '.join(filters['file_types'])}")
+
+            matched_files, unmatched_files, matched_dir, unmatched_dir = find_and_move_files_from_archive(
+                archive_path, keywords, filters, operation
+            )
 
             # 在主线程中更新UI
-            self.root.after(0, self.processing_complete, matched_files, unmatched_files, matched_dir, unmatched_dir, None)
+            self.root.after(0, self.processing_complete, matched_files, unmatched_files, matched_dir, unmatched_dir, operation, None)
 
         except Exception as e:
-            self.root.after(0, self.processing_complete, [], [], "", "", str(e))
+            self.root.after(0, self.processing_complete, [], [], "", "", operation, str(e))
 
     def processing_complete(self, matched_files, unmatched_files, matched_dir, unmatched_dir, error):
         """处理完成后的回调"""
