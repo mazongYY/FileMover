@@ -384,6 +384,18 @@ class ModernFileFilterApp:
 
     def on_archive_dropped(self, file_path: str):
         """处理拖拽的压缩包文件"""
+        # 检查是否是新的压缩包
+        old_archive = self.archive_var.get()
+        if old_archive and old_archive != file_path:
+            # 导入新压缩包时自动清理
+            from utils import auto_cleanup_on_new_archive
+            try:
+                auto_cleanup_on_new_archive(file_path, self.extracted_dir)
+                self.log_message("检测到新压缩包，已自动清理extracted_files目录")
+                self.show_notification("已自动清理旧文件", "info")
+            except Exception as e:
+                self.log_message(f"自动清理警告: {e}", "WARNING")
+
         self.archive_var.set(file_path)
         if hasattr(self.drop_zone, 'drop_status'):
             self.drop_zone.drop_status.set(f"✅ 已选择: {os.path.basename(file_path)}")
@@ -404,6 +416,18 @@ class ModernFileFilterApp:
             ]
         )
         if archive_path:
+            # 检查是否是新的压缩包
+            old_archive = self.archive_var.get()
+            if old_archive and old_archive != archive_path:
+                # 导入新压缩包时自动清理
+                from utils import auto_cleanup_on_new_archive
+                try:
+                    auto_cleanup_on_new_archive(archive_path, self.extracted_dir)
+                    self.log_message("检测到新压缩包，已自动清理extracted_files目录")
+                    self.show_notification("已自动清理旧文件", "info")
+                except Exception as e:
+                    self.log_message(f"自动清理警告: {e}", "WARNING")
+
             self.archive_var.set(archive_path)
             if hasattr(self.drop_zone, 'drop_status'):
                 self.drop_zone.drop_status.set(f"✅ 已选择: {os.path.basename(archive_path)}")

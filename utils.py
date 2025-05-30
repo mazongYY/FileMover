@@ -469,6 +469,10 @@ def find_and_move_files_from_archive(archive_path: str, keywords: List[str],
     # 初始化项目目录
     extracted_dir, matched_dir, unmatched_dir = initialize_project_directories()
 
+    # 自动清理extracted_files目录
+    logger.info("检测到新压缩包，开始自动清理...")
+    auto_cleanup_on_new_archive(archive_path, matched_dir.replace("matched", ""))
+
     # 检查密码保护
     password = None
     if password_manager and password_manager.is_password_protected(archive_path):
@@ -716,6 +720,90 @@ def cleanup_temp_directory(temp_dir: str) -> None:
             shutil.rmtree(temp_dir, ignore_errors=True)
         except Exception:
             pass  # 忽略清理错误
+
+
+def cleanup_extracted_files_directory(extracted_dir: str = None) -> bool:
+    """
+    清理extracted_files目录下的所有文件和子文件夹
+
+    Args:
+        extracted_dir: extracted_files目录路径，如果为None则使用默认路径
+
+    Returns:
+        bool: 清理是否成功
+    """
+    logger = logging.getLogger("FileFilterTool")
+
+    if extracted_dir is None:
+        extracted_dir = os.path.join(os.getcwd(), "extracted_files")
+
+    if not os.path.exists(extracted_dir):
+        logger.info(f"extracted_files目录不存在，无需清理: {extracted_dir}")
+        return True
+
+    try:
+        # 获取目录下的所有内容
+        items_to_remove = []
+        for item in os.listdir(extracted_dir):
+            item_path = os.path.join(extracted_dir, item)
+            items_to_remove.append(item_path)
+
+        if not items_to_remove:
+            logger.info("extracted_files目录已经是空的")
+            return True
+
+        logger.info(f"开始清理extracted_files目录，共{len(items_to_remove)}个项目")
+
+        # 清理所有文件和文件夹
+        removed_count = 0
+        for item_path in items_to_remove:
+            try:
+                if os.path.isfile(item_path):
+                    os.remove(item_path)
+                    logger.debug(f"删除文件: {os.path.basename(item_path)}")
+                elif os.path.isdir(item_path):
+                    shutil.rmtree(item_path)
+                    logger.debug(f"删除文件夹: {os.path.basename(item_path)}")
+                removed_count += 1
+            except Exception as e:
+                logger.warning(f"删除失败 {item_path}: {e}")
+
+        logger.info(f"extracted_files目录清理完成，成功删除{removed_count}/{len(items_to_remove)}个项目")
+        return removed_count == len(items_to_remove)
+
+    except Exception as e:
+        logger.error(f"清理extracted_files目录失败: {e}")
+        return False
+
+
+def auto_cleanup_on_new_archive(archive_path: str, extracted_dir: str = None) -> bool:
+    """
+    当导入新压缩包时自动清理extracted_files目录
+
+    Args:
+        archive_path: 新压缩包的路径
+        extracted_dir: extracted_files目录路径
+
+    Returns:
+        bool: 清理是否成功
+    """
+    logger = logging.getLogger("FileFilterTool")
+
+    if not archive_path or not os.path.exists(archive_path):
+        logger.warning("无效的压缩包路径，跳过自动清理")
+        return False
+
+    logger.info(f"检测到新压缩包: {os.path.basename(archive_path)}")
+    logger.info("开始自动清理extracted_files目录...")
+
+    success = cleanup_extracted_files_directory(extracted_dir)
+
+    if success:
+        logger.info("自动清理完成，准备处理新压缩包")
+    else:
+        logger.warning("自动清理部分失败，但继续处理新压缩包")
+
+    return success
 
 
 def get_archive_file_list(archive_path: str) -> List[Dict[str, Any]]:

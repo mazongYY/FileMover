@@ -325,6 +325,17 @@ class FileFilterApp:
             ]
         )
         if archive_path:
+            # 检查是否是新的压缩包
+            old_archive = self.archive_var.get()
+            if old_archive and old_archive != archive_path:
+                # 导入新压缩包时自动清理
+                from utils import auto_cleanup_on_new_archive
+                try:
+                    auto_cleanup_on_new_archive(archive_path, self.extracted_dir)
+                    self.log_message("检测到新压缩包，已自动清理extracted_files目录")
+                except Exception as e:
+                    self.log_message(f"自动清理警告: {e}", "WARNING")
+
             self.archive_var.set(archive_path)
             self.drag_drop_frame.set_file(archive_path)
             self.archive_preview.set_archive(archive_path)

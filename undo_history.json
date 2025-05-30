@@ -1,0 +1,685 @@
+{
+  "operations": [
+    {
+      "operation_id": "op_20250530_235701_558882",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041451603_上海二有餐饮管理有限公司_20250530202520.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\命中文件\\dzfp_25142000000041451603_上海二有餐饮管理有限公司_20250530202520.pdf",
+      "timestamp": "2025-05-30T23:57:01.563189",
+      "file_size": 150822,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_558882_dzfp_25142000000041451603_上海二有餐饮管理有限公司_20250530202520.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_567443",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041451604_佛山市澳辉金属建材有限公司_20250530202524.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041451604_佛山市澳辉金属建材有限公司_20250530202524.pdf",
+      "timestamp": "2025-05-30T23:57:01.571578",
+      "file_size": 153899,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_567443_dzfp_25142000000041451604_佛山市澳辉金属建材有限公司_20250530202524.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_575118",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041451605_中和青山智能科技（四川）有限公司_20250530202525.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041451605_中和青山智能科技（四川）有限公司_20250530202525.pdf",
+      "timestamp": "2025-05-30T23:57:01.579315",
+      "file_size": 155050,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_575118_dzfp_25142000000041451605_中和青山智能科技（四川）有限公司_20250530202525.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_582478",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041451606_厦门咖果餐饮管理有限公司_20250530202534.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041451606_厦门咖果餐饮管理有限公司_20250530202534.pdf",
+      "timestamp": "2025-05-30T23:57:01.586531",
+      "file_size": 155522,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_582478_dzfp_25142000000041451606_厦门咖果餐饮管理有限公司_20250530202534.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_590505",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041461587_中山市采蝶轩食品有限公司_20250530202522.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041461587_中山市采蝶轩食品有限公司_20250530202522.pdf",
+      "timestamp": "2025-05-30T23:57:01.593496",
+      "file_size": 151923,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_590505_dzfp_25142000000041461587_中山市采蝶轩食品有限公司_20250530202522.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_597969",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041461590_广东华人行跨境电商物流有限公司_20250530202529.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041461590_广东华人行跨境电商物流有限公司_20250530202529.pdf",
+      "timestamp": "2025-05-30T23:57:01.601898",
+      "file_size": 153373,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_597969_dzfp_25142000000041461590_广东华人行跨境电商物流有限公司_20250530202529.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_605931",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041461591_深圳市易众泰供应链管理有限公司_20250530202530.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041461591_深圳市易众泰供应链管理有限公司_20250530202530.pdf",
+      "timestamp": "2025-05-30T23:57:01.608930",
+      "file_size": 155053,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_605931_dzfp_25142000000041461591_深圳市易众泰供应链管理有限公司_20250530202530.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_614165",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041461592_山西晋豫融合新材料科技有限公司_20250530202531.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041461592_山西晋豫融合新材料科技有限公司_20250530202531.pdf",
+      "timestamp": "2025-05-30T23:57:01.617807",
+      "file_size": 155316,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_614165_dzfp_25142000000041461592_山西晋豫融合新材料科技有限公司_20250530202531.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_621968",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041461593_上海摩丸文化传媒有限公司_20250530202532.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041461593_上海摩丸文化传媒有限公司_20250530202532.pdf",
+      "timestamp": "2025-05-30T23:57:01.625875",
+      "file_size": 153160,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_621968_dzfp_25142000000041461593_上海摩丸文化传媒有限公司_20250530202532.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_629892",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041461594_武汉市硚口区硚康医养服务有限责任公司_20250530202533.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041461594_武汉市硚口区硚康医养服务有限责任公司_20250530202533.pdf",
+      "timestamp": "2025-05-30T23:57:01.633337",
+      "file_size": 153529,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_629892_dzfp_25142000000041461594_武汉市硚口区硚康医养服务有限责任公司_20250530202533.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_637502",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041471546_闽南师范大学_20250530202521.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\命中文件\\dzfp_25142000000041471546_闽南师范大学_20250530202521.pdf",
+      "timestamp": "2025-05-30T23:57:01.641601",
+      "file_size": 146232,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_637502_dzfp_25142000000041471546_闽南师范大学_20250530202521.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_645537",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041471547_杭州雪花电气有限公司_20250530202525.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041471547_杭州雪花电气有限公司_20250530202525.pdf",
+      "timestamp": "2025-05-30T23:57:01.649409",
+      "file_size": 152732,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_645537_dzfp_25142000000041471547_杭州雪花电气有限公司_20250530202525.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_654180",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041471548_深圳华嘉盛科技有限公司_20250530202527.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041471548_深圳华嘉盛科技有限公司_20250530202527.pdf",
+      "timestamp": "2025-05-30T23:57:01.658189",
+      "file_size": 149600,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_654180_dzfp_25142000000041471548_深圳华嘉盛科技有限公司_20250530202527.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_661947",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041471549_南京正大天晴制药有限公司_20250530202534.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041471549_南京正大天晴制药有限公司_20250530202534.pdf",
+      "timestamp": "2025-05-30T23:57:01.665960",
+      "file_size": 151506,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_661947_dzfp_25142000000041471549_南京正大天晴制药有限公司_20250530202534.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_669953",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041471550_长沙市金阳高级中学有限公司_20250530202535.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041471550_长沙市金阳高级中学有限公司_20250530202535.pdf",
+      "timestamp": "2025-05-30T23:57:01.674290",
+      "file_size": 154458,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_669953_dzfp_25142000000041471550_长沙市金阳高级中学有限公司_20250530202535.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_678950",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041471551_南京星晟餐饮有限公司_20250530202536.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041471551_南京星晟餐饮有限公司_20250530202536.pdf",
+      "timestamp": "2025-05-30T23:57:01.682924",
+      "file_size": 155710,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_678950_dzfp_25142000000041471551_南京星晟餐饮有限公司_20250530202536.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_687238",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041481650_成都惠智久科计量检测技术有限公司_20250530202521.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\命中文件\\dzfp_25142000000041481650_成都惠智久科计量检测技术有限公司_20250530202521.pdf",
+      "timestamp": "2025-05-30T23:57:01.691109",
+      "file_size": 155668,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_687238_dzfp_25142000000041481650_成都惠智久科计量检测技术有限公司_20250530202521.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_695307",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041481652_深圳市创浩仕科技有限公司_20250530202520.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\命中文件\\dzfp_25142000000041481652_深圳市创浩仕科技有限公司_20250530202520.pdf",
+      "timestamp": "2025-05-30T23:57:01.699302",
+      "file_size": 154609,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_695307_dzfp_25142000000041481652_深圳市创浩仕科技有限公司_20250530202520.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_703396",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041481655_武汉味康嘉品健康科技有限公司_20250530202530.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041481655_武汉味康嘉品健康科技有限公司_20250530202530.pdf",
+      "timestamp": "2025-05-30T23:57:01.707678",
+      "file_size": 153984,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_703396_dzfp_25142000000041481655_武汉味康嘉品健康科技有限公司_20250530202530.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_711708",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041481656_长融（天津）食品销售有限公司_20250530202531.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041481656_长融（天津）食品销售有限公司_20250530202531.pdf",
+      "timestamp": "2025-05-30T23:57:01.715710",
+      "file_size": 161015,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_711708_dzfp_25142000000041481656_长融（天津）食品销售有限公司_20250530202531.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_720758",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041481657_天津市陆海测绘有限公司_20250530202531.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041481657_天津市陆海测绘有限公司_20250530202531.pdf",
+      "timestamp": "2025-05-30T23:57:01.724144",
+      "file_size": 153479,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_720758_dzfp_25142000000041481657_天津市陆海测绘有限公司_20250530202531.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_728828",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041481658_青岛泽宇凯昇机械制造有限公司_20250530202534.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041481658_青岛泽宇凯昇机械制造有限公司_20250530202534.pdf",
+      "timestamp": "2025-05-30T23:57:01.732383",
+      "file_size": 151323,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_728828_dzfp_25142000000041481658_青岛泽宇凯昇机械制造有限公司_20250530202534.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_737379",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041481659_上海瀚蒲淞餐饮管理有限公司_20250530202536.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041481659_上海瀚蒲淞餐饮管理有限公司_20250530202536.pdf",
+      "timestamp": "2025-05-30T23:57:01.740349",
+      "file_size": 159302,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_737379_dzfp_25142000000041481659_上海瀚蒲淞餐饮管理有限公司_20250530202536.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_745777",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041481660_上海凯森环保科技有限公司_20250530202535.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041481660_上海凯森环保科技有限公司_20250530202535.pdf",
+      "timestamp": "2025-05-30T23:57:01.749267",
+      "file_size": 150999,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_745777_dzfp_25142000000041481660_上海凯森环保科技有限公司_20250530202535.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_754281",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041491667_湖南宏旺新材料科技有限公司_20250530202521.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\命中文件\\dzfp_25142000000041491667_湖南宏旺新材料科技有限公司_20250530202521.pdf",
+      "timestamp": "2025-05-30T23:57:01.758282",
+      "file_size": 153228,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_754281_dzfp_25142000000041491667_湖南宏旺新材料科技有限公司_20250530202521.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_763168",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041491669_福建省宁德市第五中学_20250530202525.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041491669_福建省宁德市第五中学_20250530202525.pdf",
+      "timestamp": "2025-05-30T23:57:01.766489",
+      "file_size": 152477,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_763168_dzfp_25142000000041491669_福建省宁德市第五中学_20250530202525.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_771873",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041491670_中国人民解放军重庆警备区沙坪坝退休干部休养所_20250530202526.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041491670_中国人民解放军重庆警备区沙坪坝退休干部休养所_20250530202526.pdf",
+      "timestamp": "2025-05-30T23:57:01.775483",
+      "file_size": 154032,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_771873_dzfp_25142000000041491670_中国人民解放军重庆警备区沙坪坝退休干部休养所_20250530202526.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_780757",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041491671_成都星医文化传媒有限公司_20250530202526.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041491671_成都星医文化传媒有限公司_20250530202526.pdf",
+      "timestamp": "2025-05-30T23:57:01.784870",
+      "file_size": 150171,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_780757_dzfp_25142000000041491671_成都星医文化传媒有限公司_20250530202526.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_789661",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041491672_广州潮禧一九八八餐饮管理有限公司_20250530202528.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041491672_广州潮禧一九八八餐饮管理有限公司_20250530202528.pdf",
+      "timestamp": "2025-05-30T23:57:01.793689",
+      "file_size": 154538,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_789661_dzfp_25142000000041491672_广州潮禧一九八八餐饮管理有限公司_20250530202528.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_798689",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041491673_租行天下汽车科技（济宁）有限公司_20250530202530.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041491673_租行天下汽车科技（济宁）有限公司_20250530202530.pdf",
+      "timestamp": "2025-05-30T23:57:01.801661",
+      "file_size": 154472,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_798689_dzfp_25142000000041491673_租行天下汽车科技（济宁）有限公司_20250530202530.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_807028",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041491674_北京华博德亿生物技术有限公司_20250530202530.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041491674_北京华博德亿生物技术有限公司_20250530202530.pdf",
+      "timestamp": "2025-05-30T23:57:01.811023",
+      "file_size": 153189,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_807028_dzfp_25142000000041491674_北京华博德亿生物技术有限公司_20250530202530.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_816267",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041491675_广州迈科新材料科技有限公司_20250530202531.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041491675_广州迈科新材料科技有限公司_20250530202531.pdf",
+      "timestamp": "2025-05-30T23:57:01.820380",
+      "file_size": 152974,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_816267_dzfp_25142000000041491675_广州迈科新材料科技有限公司_20250530202531.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_825765",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041491676_青岛凯昇环保设备制造有限公司_20250530202534.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041491676_青岛凯昇环保设备制造有限公司_20250530202534.pdf",
+      "timestamp": "2025-05-30T23:57:01.829775",
+      "file_size": 153634,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_825765_dzfp_25142000000041491676_青岛凯昇环保设备制造有限公司_20250530202534.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_835137",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041501585_深圳技术大学_20250530202521.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\命中文件\\dzfp_25142000000041501585_深圳技术大学_20250530202521.pdf",
+      "timestamp": "2025-05-30T23:57:01.838934",
+      "file_size": 151622,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_835137_dzfp_25142000000041501585_深圳技术大学_20250530202521.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_844156",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041501587_北京极简等园门诊部有限公司_20250530202526.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041501587_北京极简等园门诊部有限公司_20250530202526.pdf",
+      "timestamp": "2025-05-30T23:57:01.848428",
+      "file_size": 157168,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_844156_dzfp_25142000000041501587_北京极简等园门诊部有限公司_20250530202526.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_853878",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041501590_大连日进机电工程有限公司_20250530202528.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041501590_大连日进机电工程有限公司_20250530202528.pdf",
+      "timestamp": "2025-05-30T23:57:01.857951",
+      "file_size": 152424,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_853878_dzfp_25142000000041501590_大连日进机电工程有限公司_20250530202528.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_862773",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041501592_苏州蓝博控制技术有限公司_20250530202529.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041501592_苏州蓝博控制技术有限公司_20250530202529.pdf",
+      "timestamp": "2025-05-30T23:57:01.866773",
+      "file_size": 154818,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_862773_dzfp_25142000000041501592_苏州蓝博控制技术有限公司_20250530202529.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_872442",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041511616_新丰电器(深圳)有限公司_20250530202522.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\命中文件\\dzfp_25142000000041511616_新丰电器(深圳)有限公司_20250530202522.pdf",
+      "timestamp": "2025-05-30T23:57:01.876334",
+      "file_size": 152356,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_872442_dzfp_25142000000041511616_新丰电器(深圳)有限公司_20250530202522.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_881533",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041511617_姑苏区裕文陈列展示设计制作室_20250530202522.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041511617_姑苏区裕文陈列展示设计制作室_20250530202522.pdf",
+      "timestamp": "2025-05-30T23:57:01.885553",
+      "file_size": 151751,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_881533_dzfp_25142000000041511617_姑苏区裕文陈列展示设计制作室_20250530202522.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_890681",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041511618_山西亿信伟业工贸有限公司_20250530202529.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041511618_山西亿信伟业工贸有限公司_20250530202529.pdf",
+      "timestamp": "2025-05-30T23:57:01.894826",
+      "file_size": 154414,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_890681_dzfp_25142000000041511618_山西亿信伟业工贸有限公司_20250530202529.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_900677",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041511619_镇江科隆新动力科技有限公司_20250530202532.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041511619_镇江科隆新动力科技有限公司_20250530202532.pdf",
+      "timestamp": "2025-05-30T23:57:01.904838",
+      "file_size": 151537,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_900677_dzfp_25142000000041511619_镇江科隆新动力科技有限公司_20250530202532.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_909553",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041521530_莱芜信誉楼百货有限公司_20250530202520.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\命中文件\\dzfp_25142000000041521530_莱芜信誉楼百货有限公司_20250530202520.pdf",
+      "timestamp": "2025-05-30T23:57:01.914123",
+      "file_size": 153500,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_909553_dzfp_25142000000041521530_莱芜信誉楼百货有限公司_20250530202520.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_920054",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041521531_湖北省武汉市欣铂商贸有限公司_20250530202523.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041521531_湖北省武汉市欣铂商贸有限公司_20250530202523.pdf",
+      "timestamp": "2025-05-30T23:57:01.924116",
+      "file_size": 152863,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_920054_dzfp_25142000000041521531_湖北省武汉市欣铂商贸有限公司_20250530202523.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_929517",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041521532_商丘市城乡一体化示范区昌华小学_20250530202526.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041521532_商丘市城乡一体化示范区昌华小学_20250530202526.pdf",
+      "timestamp": "2025-05-30T23:57:01.933311",
+      "file_size": 149306,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_929517_dzfp_25142000000041521532_商丘市城乡一体化示范区昌华小学_20250530202526.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_938983",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041521533_久久丫食品集团股份有限公司_20250530202536.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041521533_久久丫食品集团股份有限公司_20250530202536.pdf",
+      "timestamp": "2025-05-30T23:57:01.942762",
+      "file_size": 153215,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_938983_dzfp_25142000000041521533_久久丫食品集团股份有限公司_20250530202536.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_948627",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041531596_无锡力臻口腔门诊有限公司_20250530202524.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041531596_无锡力臻口腔门诊有限公司_20250530202524.pdf",
+      "timestamp": "2025-05-30T23:57:01.952617",
+      "file_size": 152943,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_948627_dzfp_25142000000041531596_无锡力臻口腔门诊有限公司_20250530202524.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_958428",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041531597_敦煌市万振商贸有限公司_20250530202524.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041531597_敦煌市万振商贸有限公司_20250530202524.pdf",
+      "timestamp": "2025-05-30T23:57:01.962530",
+      "file_size": 157450,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_958428_dzfp_25142000000041531597_敦煌市万振商贸有限公司_20250530202524.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_967733",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041531598_云南嘉华食品有限公司_20250530202524.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041531598_云南嘉华食品有限公司_20250530202524.pdf",
+      "timestamp": "2025-05-30T23:57:01.971867",
+      "file_size": 150691,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_967733_dzfp_25142000000041531598_云南嘉华食品有限公司_20250530202524.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_976862",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041531600_长春垠禄酒店有限责任公司_20250530202527.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041531600_长春垠禄酒店有限责任公司_20250530202527.pdf",
+      "timestamp": "2025-05-30T23:57:01.981593",
+      "file_size": 154654,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_976862_dzfp_25142000000041531600_长春垠禄酒店有限责任公司_20250530202527.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_986917",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041531601_秦皇岛万创电力技术有限公司_20250530202527.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041531601_秦皇岛万创电力技术有限公司_20250530202527.pdf",
+      "timestamp": "2025-05-30T23:57:01.990977",
+      "file_size": 152511,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_986917_dzfp_25142000000041531601_秦皇岛万创电力技术有限公司_20250530202527.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235701_996002",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041531602_江苏威晟商贸有限公司_20250530202527.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041531602_江苏威晟商贸有限公司_20250530202527.pdf",
+      "timestamp": "2025-05-30T23:57:02.000619",
+      "file_size": 150169,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235701_996002_dzfp_25142000000041531602_江苏威晟商贸有限公司_20250530202527.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_006589",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041531603_南京大经中医药信息技术有限公司_20250530202528.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041531603_南京大经中医药信息技术有限公司_20250530202528.pdf",
+      "timestamp": "2025-05-30T23:57:02.011356",
+      "file_size": 152973,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_006589_dzfp_25142000000041531603_南京大经中医药信息技术有限公司_20250530202528.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_017223",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041531605_天津枝稻乐网络科技有限公司_20250530202529.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041531605_天津枝稻乐网络科技有限公司_20250530202529.pdf",
+      "timestamp": "2025-05-30T23:57:02.020827",
+      "file_size": 152284,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_017223_dzfp_25142000000041531605_天津枝稻乐网络科技有限公司_20250530202529.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_026771",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041531606_海南正德润泰项目管理有限公司_20250530202532.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041531606_海南正德润泰项目管理有限公司_20250530202532.pdf",
+      "timestamp": "2025-05-30T23:57:02.030796",
+      "file_size": 150984,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_026771_dzfp_25142000000041531606_海南正德润泰项目管理有限公司_20250530202532.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_036724",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041541608_铂锐（上海）汽车科技有限公司_20250530202528.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041541608_铂锐（上海）汽车科技有限公司_20250530202528.pdf",
+      "timestamp": "2025-05-30T23:57:02.040174",
+      "file_size": 151405,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_036724_dzfp_25142000000041541608_铂锐（上海）汽车科技有限公司_20250530202528.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_045737",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041541610_宣城市德思电子电器有限公司_20250530202536.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041541610_宣城市德思电子电器有限公司_20250530202536.pdf",
+      "timestamp": "2025-05-30T23:57:02.049733",
+      "file_size": 156354,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_045737_dzfp_25142000000041541610_宣城市德思电子电器有限公司_20250530202536.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_056037",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041551564_中山市采蝶轩食品有限公司_20250530202523.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041551564_中山市采蝶轩食品有限公司_20250530202523.pdf",
+      "timestamp": "2025-05-30T23:57:02.059882",
+      "file_size": 151632,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_056037_dzfp_25142000000041551564_中山市采蝶轩食品有限公司_20250530202523.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_065318",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041551565_长沙县黄兴镇干杉卫生院(长沙县黄兴镇干杉妇幼保健计划生育服务站)_20250530202523.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041551565_长沙县黄兴镇干杉卫生院(长沙县黄兴镇干杉妇幼保健计划生育服务站)_20250530202523.pdf",
+      "timestamp": "2025-05-30T23:57:02.069318",
+      "file_size": 153963,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_065318_dzfp_25142000000041551565_长沙县黄兴镇干杉卫生院(长沙县黄兴镇干杉妇幼保健计划生育服务站)_20250530202523.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_075992",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041551567_北京京鲁兴业投资有限公司_20250530202533.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041551567_北京京鲁兴业投资有限公司_20250530202533.pdf",
+      "timestamp": "2025-05-30T23:57:02.079904",
+      "file_size": 155935,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_075992_dzfp_25142000000041551567_北京京鲁兴业投资有限公司_20250530202533.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_086348",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041551568_长沙市金阳高级中学有限公司_20250530202535.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041551568_长沙市金阳高级中学有限公司_20250530202535.pdf",
+      "timestamp": "2025-05-30T23:57:02.089897",
+      "file_size": 156028,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_086348_dzfp_25142000000041551568_长沙市金阳高级中学有限公司_20250530202535.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_096219",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041561412_中国石油天然气股份有限公司广西南宁销售分公司_20250530202522.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041561412_中国石油天然气股份有限公司广西南宁销售分公司_20250530202522.pdf",
+      "timestamp": "2025-05-30T23:57:02.100353",
+      "file_size": 152890,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_096219_dzfp_25142000000041561412_中国石油天然气股份有限公司广西南宁销售分公司_20250530202522.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_106220",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041561413_富扬（上海）邮轮船供有限公司_20250530202523.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041561413_富扬（上海）邮轮船供有限公司_20250530202523.pdf",
+      "timestamp": "2025-05-30T23:57:02.110280",
+      "file_size": 154607,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_106220_dzfp_25142000000041561413_富扬（上海）邮轮船供有限公司_20250530202523.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_117129",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041561414_晋江市池店镇滨江幼儿园_20250530202525.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041561414_晋江市池店镇滨江幼儿园_20250530202525.pdf",
+      "timestamp": "2025-05-30T23:57:02.120706",
+      "file_size": 150791,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_117129_dzfp_25142000000041561414_晋江市池店镇滨江幼儿园_20250530202525.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_127037",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041561415_西安合泽大塘足浴有限公司_20250530202532.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041561415_西安合泽大塘足浴有限公司_20250530202532.pdf",
+      "timestamp": "2025-05-30T23:57:02.130378",
+      "file_size": 154029,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_127037_dzfp_25142000000041561415_西安合泽大塘足浴有限公司_20250530202532.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_136973",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041561416_珠海上扬实业有限公司_20250530202533.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041561416_珠海上扬实业有限公司_20250530202533.pdf",
+      "timestamp": "2025-05-30T23:57:02.140945",
+      "file_size": 150676,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_136973_dzfp_25142000000041561416_珠海上扬实业有限公司_20250530202533.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_147442",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041561417_沈阳市辽博商贸有限公司_20250530202533.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041561417_沈阳市辽博商贸有限公司_20250530202533.pdf",
+      "timestamp": "2025-05-30T23:57:02.151318",
+      "file_size": 154171,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_147442_dzfp_25142000000041561417_沈阳市辽博商贸有限公司_20250530202533.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_157555",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\dzfp_25142000000041561418_北京汇美幼大托育服务有限公司_20250530202535.pdf",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\dzfp_25142000000041561418_北京汇美幼大托育服务有限公司_20250530202535.pdf",
+      "timestamp": "2025-05-30T23:57:02.161818",
+      "file_size": 154149,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_157555_dzfp_25142000000041561418_北京汇美幼大托育服务有限公司_20250530202535.pdf"
+    },
+    {
+      "operation_id": "op_20250530_235702_168452",
+      "operation_type": "move",
+      "source_path": "F:\\Project\\tools\\temp_extract\\extract_20250530_235701\\发票批量下载情况统计_20250530202537.xlsx",
+      "target_path": "F:\\Project\\tools\\extracted_files\\未命中文件\\发票批量下载情况统计_20250530202537.xlsx",
+      "timestamp": "2025-05-30T23:57:02.171879",
+      "file_size": 6611,
+      "file_hash": null,
+      "backup_path": "F:\\Project\\tools\\backup\\op_20250530_235702_168452_发票批量下载情况统计_20250530202537.xlsx"
+    }
+  ],
+  "last_updated": "2025-05-30T23:57:02.172999"
+}
