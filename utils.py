@@ -93,12 +93,13 @@ def initialize_project_directories() -> Tuple[str, str, str]:
     return extracted_dir, matched_dir, unmatched_dir
 
 
-def extract_archive(archive_path: str) -> str:
+def extract_archive(archive_path: str, password: Optional[str] = None) -> str:
     """
     解压压缩包到项目临时目录
 
     Args:
         archive_path: 压缩包路径
+        password: 解压密码（可选）
 
     Returns:
         str: 解压后的目录路径
@@ -132,14 +133,18 @@ def extract_archive(archive_path: str) -> str:
 
         if ext == '.zip':
             with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                if password:
+                    zip_ref.setpassword(password.encode('utf-8'))
                 zip_ref.extractall(temp_dir)
                 logger.info(f"ZIP文件解压完成，文件数量: {len(zip_ref.namelist())}")
         elif ext == '.rar':
             with rarfile.RarFile(archive_path, 'r') as rar_ref:
+                if password:
+                    rar_ref.setpassword(password)
                 rar_ref.extractall(temp_dir)
                 logger.info(f"RAR文件解压完成，文件数量: {len(rar_ref.namelist())}")
         elif ext == '.7z':
-            with py7zr.SevenZipFile(archive_path, mode='r') as archive:
+            with py7zr.SevenZipFile(archive_path, mode='r', password=password) as archive:
                 archive.extractall(temp_dir)
                 logger.info("7Z文件解压完成")
         else:
@@ -284,7 +289,7 @@ def filter_by_date(file_path: str, start_date: Optional[datetime] = None, end_da
         return False
 
 
-def perform_file_operation(src_file: str, dst_file: str, operation: str = "move") -> bool:
+def perform_file_operation(src_file: str, dst_file: str, operation: str = "move", undo_manager=None) -> bool:
     """
     执行文件操作（移动/复制/链接）
 
@@ -292,6 +297,7 @@ def perform_file_operation(src_file: str, dst_file: str, operation: str = "move"
         src_file: 源文件路径
         dst_file: 目标文件路径
         operation: 操作类型 ("move", "copy", "link")
+        undo_manager: 撤销管理器（可选）
 
     Returns:
         bool: 操作是否成功
@@ -301,6 +307,10 @@ def perform_file_operation(src_file: str, dst_file: str, operation: str = "move"
     try:
         # 确保目标目录存在
         os.makedirs(os.path.dirname(dst_file), exist_ok=True)
+
+        # 记录操作到撤销管理器（在执行操作前）
+        if undo_manager:
+            undo_manager.record_operation(operation, src_file, dst_file)
 
         if operation == "move":
             shutil.move(src_file, dst_file)
@@ -327,7 +337,7 @@ def perform_file_operation(src_file: str, dst_file: str, operation: str = "move"
 
 
 def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: str, unmatched_dir: str,
-                           filters: Optional[Dict[str, Any]] = None, operation: str = "move") -> Tuple[List[str], List[str]]:
+                           filters: Optional[Dict[str, Any]] = None, operation: str = "move", undo_manager=None) -> Tuple[List[str], List[str]]:
     """
     分类并移动文件到对应目录
 
@@ -338,6 +348,7 @@ def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: s
         unmatched_dir: 未命中文件目录
         filters: 过滤条件字典
         operation: 操作类型 ("move", "copy", "link")
+        undo_manager: 撤销管理器（可选）
 
     Returns:
         Tuple[List[str], List[str]]: (命中文件列表, 未命中文件列表)
@@ -406,7 +417,7 @@ def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: s
                 dst_file = os.path.join(matched_dir, filename)
                 dst_file = get_unique_filename(dst_file)
 
-                if perform_file_operation(src_file, dst_file, operation):
+                if perform_file_operation(src_file, dst_file, operation, undo_manager):
                     matched_files.append(filename)
                     logger.debug(f"命中文件已{operation}: {filename}")
             else:
@@ -414,7 +425,7 @@ def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: s
                 dst_file = os.path.join(unmatched_dir, filename)
                 dst_file = get_unique_filename(dst_file)
 
-                if perform_file_operation(src_file, dst_file, operation):
+                if perform_file_operation(src_file, dst_file, operation, undo_manager):
                     unmatched_files.append(filename)
                     logger.debug(f"未命中文件已{operation}: {filename}")
 
@@ -424,7 +435,7 @@ def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: s
 
 def find_and_move_files_from_archive(archive_path: str, keywords: List[str],
                                     filters: Optional[Dict[str, Any]] = None,
-                                    operation: str = "move") -> Tuple[List[str], List[str], str, str]:
+                                    operation: str = "move", undo_manager=None, password_manager=None) -> Tuple[List[str], List[str], str, str]:
     """
     从压缩包中查找并分类文件
 
@@ -433,6 +444,8 @@ def find_and_move_files_from_archive(archive_path: str, keywords: List[str],
         keywords: 关键字列表
         filters: 过滤条件字典
         operation: 操作类型 ("move", "copy", "link")
+        undo_manager: 撤销管理器（可选）
+        password_manager: 密码管理器（可选）
 
     Returns:
         Tuple[List[str], List[str], str, str]: (命中文件列表, 未命中文件列表, 命中目录, 未命中目录)
@@ -456,15 +469,22 @@ def find_and_move_files_from_archive(archive_path: str, keywords: List[str],
     # 初始化项目目录
     extracted_dir, matched_dir, unmatched_dir = initialize_project_directories()
 
+    # 检查密码保护
+    password = None
+    if password_manager and password_manager.is_password_protected(archive_path):
+        password = password_manager.get_password(archive_path)
+        if not password:
+            raise ValueError("需要密码但未提供有效密码")
+
     # 解压压缩包
-    temp_extract_dir = extract_archive(archive_path)
+    temp_extract_dir = extract_archive(archive_path, password)
 
     try:
         logger.info(f"开始处理压缩包: {os.path.basename(archive_path)}")
 
         # 分类并移动文件
         matched_files, unmatched_files = classify_and_move_files(
-            temp_extract_dir, keywords, matched_dir, unmatched_dir, filters, operation
+            temp_extract_dir, keywords, matched_dir, unmatched_dir, filters, operation, undo_manager
         )
 
         logger.info(f"处理完成 - 命中文件: {len(matched_files)}, 未命中文件: {len(unmatched_files)}")

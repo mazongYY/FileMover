@@ -530,3 +530,208 @@ class ArchivePreview:
             size_bytes /= 1024
 
         return f"{size_bytes:.1f} TB"
+
+
+class UndoPanel:
+    """撤销功能面板"""
+
+    def __init__(self, parent, undo_manager):
+        self.parent = parent
+        self.undo_manager = undo_manager
+        self.frame = ttk.LabelFrame(parent, text="撤销管理", padding="5")
+        self.setup_ui()
+
+    def setup_ui(self):
+        """设置界面"""
+        # 控制按钮
+        button_frame = ttk.Frame(self.frame)
+        button_frame.pack(fill="x", pady=(0, 5))
+
+        self.refresh_button = ttk.Button(
+            button_frame,
+            text="刷新",
+            command=self.refresh_operations
+        )
+        self.refresh_button.pack(side="left")
+
+        self.undo_selected_button = ttk.Button(
+            button_frame,
+            text="撤销选中",
+            command=self.undo_selected,
+            state="disabled"
+        )
+        self.undo_selected_button.pack(side="left", padx=(5, 0))
+
+        self.clear_history_button = ttk.Button(
+            button_frame,
+            text="清空历史",
+            command=self.clear_history
+        )
+        self.clear_history_button.pack(side="right")
+
+        # 统计信息
+        self.stats_label = ttk.Label(self.frame, text="", foreground="gray")
+        self.stats_label.pack(anchor="w", pady=(0, 5))
+
+        # 操作列表
+        list_frame = ttk.Frame(self.frame)
+        list_frame.pack(fill="both", expand=True)
+
+        # 创建Treeview
+        self.tree = ttk.Treeview(
+            list_frame,
+            columns=("type", "source", "target", "time", "size"),
+            show="tree headings",
+            height=6
+        )
+
+        # 设置列
+        self.tree.heading("#0", text="操作ID")
+        self.tree.heading("type", text="类型")
+        self.tree.heading("source", text="源文件")
+        self.tree.heading("target", text="目标文件")
+        self.tree.heading("time", text="时间")
+        self.tree.heading("size", text="大小")
+
+        self.tree.column("#0", width=100)
+        self.tree.column("type", width=60)
+        self.tree.column("source", width=150)
+        self.tree.column("target", width=150)
+        self.tree.column("time", width=120)
+        self.tree.column("size", width=80)
+
+        # 滚动条
+        scrollbar_v = ttk.Scrollbar(list_frame, orient="vertical", command=self.tree.yview)
+        scrollbar_h = ttk.Scrollbar(list_frame, orient="horizontal", command=self.tree.xview)
+        self.tree.configure(yscrollcommand=scrollbar_v.set, xscrollcommand=scrollbar_h.set)
+
+        # 布局
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        scrollbar_v.grid(row=0, column=1, sticky="ns")
+        scrollbar_h.grid(row=1, column=0, sticky="ew")
+
+        list_frame.grid_rowconfigure(0, weight=1)
+        list_frame.grid_columnconfigure(0, weight=1)
+
+        # 绑定选择事件
+        self.tree.bind('<<TreeviewSelect>>', self.on_selection_changed)
+
+        # 初始加载
+        self.refresh_operations()
+
+    def refresh_operations(self):
+        """刷新操作列表"""
+        # 清空现有内容
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # 获取最近操作
+        operations = self.undo_manager.get_recent_operations(50)
+
+        # 添加到树形视图
+        for op in reversed(operations):  # 最新的在前
+            operation_id = op.operation_id[-8:]  # 显示ID后8位
+            op_type = {"move": "移动", "copy": "复制", "link": "链接"}.get(op.operation_type, op.operation_type)
+            source = os.path.basename(op.source_path)
+            target = os.path.basename(op.target_path)
+            time_str = op.timestamp.split('T')[1][:8] if 'T' in op.timestamp else op.timestamp[-8:]
+            size = self.format_size(op.file_size)
+
+            # 检查是否可以撤销
+            can_undo = self.undo_manager.can_undo(op.operation_id)
+            tags = ("can_undo",) if can_undo else ("cannot_undo",)
+
+            self.tree.insert("", "end", text=operation_id,
+                           values=(op_type, source, target, time_str, size),
+                           tags=tags)
+
+        # 设置标签样式
+        self.tree.tag_configure("can_undo", foreground="black")
+        self.tree.tag_configure("cannot_undo", foreground="gray")
+
+        # 更新统计信息
+        self.update_statistics()
+
+    def update_statistics(self):
+        """更新统计信息"""
+        stats = self.undo_manager.get_statistics()
+        total = stats.get("total", 0)
+        by_type = stats.get("by_type", {})
+
+        type_text = ", ".join([f"{k}:{v}" for k, v in by_type.items()])
+        self.stats_label.config(
+            text=f"总操作数: {total} ({type_text})",
+            foreground="black"
+        )
+
+    def on_selection_changed(self, event):
+        """选择改变事件"""
+        selected = self.tree.selection()
+        if selected:
+            self.undo_selected_button.config(state="normal")
+        else:
+            self.undo_selected_button.config(state="disabled")
+
+    def undo_selected(self):
+        """撤销选中的操作"""
+        selected = self.tree.selection()
+        if not selected:
+            return
+
+        # 获取选中的操作ID
+        operation_ids = []
+        for item in selected:
+            operation_id_short = self.tree.item(item, "text")
+            # 找到完整的操作ID
+            for op in self.undo_manager.operations:
+                if op.operation_id.endswith(operation_id_short):
+                    operation_ids.append(op.operation_id)
+                    break
+
+        if not operation_ids:
+            messagebox.showwarning("撤销失败", "未找到有效的操作记录")
+            return
+
+        # 确认撤销
+        count = len(operation_ids)
+        result = messagebox.askyesno(
+            "确认撤销",
+            f"确定要撤销 {count} 个操作吗？\n\n注意：撤销操作不可逆！"
+        )
+
+        if result:
+            success_count = 0
+            for op_id in operation_ids:
+                if self.undo_manager.undo_operation(op_id):
+                    success_count += 1
+
+            messagebox.showinfo(
+                "撤销完成",
+                f"成功撤销 {success_count}/{count} 个操作"
+            )
+
+            self.refresh_operations()
+
+    def clear_history(self):
+        """清空撤销历史"""
+        result = messagebox.askyesno(
+            "确认清空",
+            "确定要清空所有撤销历史吗？\n\n这将删除所有备份文件，操作不可逆！"
+        )
+
+        if result:
+            self.undo_manager.clear_history()
+            self.refresh_operations()
+            messagebox.showinfo("清空完成", "撤销历史已清空")
+
+    def format_size(self, size_bytes: int) -> str:
+        """格式化文件大小"""
+        if size_bytes == 0:
+            return "0 B"
+
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size_bytes < 1024:
+                return f"{size_bytes:.1f} {unit}"
+            size_bytes /= 1024
+
+        return f"{size_bytes:.1f} TB"

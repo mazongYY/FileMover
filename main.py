@@ -8,7 +8,9 @@ from utils import (find_and_move_files, validate_directory, count_matching_files
                    count_matching_files_in_archive, cleanup_temp_directory,
                    setup_logging, initialize_project_directories)
 from config_manager import ConfigManager
-from advanced_gui import FileTypeSelector, AdvancedFilters, DragDropFrame, ArchivePreview
+from advanced_gui import FileTypeSelector, AdvancedFilters, DragDropFrame, ArchivePreview, UndoPanel
+from undo_manager import UndoManager
+from password_manager import PasswordManager
 
 
 class FileFilterApp:
@@ -27,9 +29,15 @@ class FileFilterApp:
         # 初始化配置管理器
         self.config_manager = ConfigManager()
 
+        # 初始化撤销管理器
+        self.undo_manager = UndoManager()
+
+        # 初始化密码管理器
+        self.password_manager = PasswordManager()
+
         # 初始化日志系统
         self.logger = setup_logging()
-        self.logger.info("程序启动 v4.0")
+        self.logger.info("程序启动 v4.0 - 第三阶段")
 
         # 初始化项目目录
         try:
@@ -246,6 +254,13 @@ class FileFilterApp:
 
         ttk.Button(log_button_frame, text="清空日志", command=self.clear_log).pack(side="left")
         ttk.Button(log_button_frame, text="保存日志", command=self.save_log).pack(side="left", padx=(5, 0))
+
+        # 撤销管理标签页
+        undo_frame = ttk.Frame(notebook)
+        notebook.add(undo_frame, text="撤销管理")
+
+        self.undo_panel = UndoPanel(undo_frame, self.undo_manager)
+        self.undo_panel.frame.pack(fill="both", expand=True, padx=5, pady=5)
 
     def load_user_preferences(self):
         """加载用户偏好设置"""
@@ -507,7 +522,7 @@ class FileFilterApp:
                 self.log_message(f"文件类型过滤: {', '.join(filters['file_types'])}")
 
             matched_files, unmatched_files, matched_dir, unmatched_dir = find_and_move_files_from_archive(
-                archive_path, keywords, filters, operation
+                archive_path, keywords, filters, operation, self.undo_manager, self.password_manager
             )
 
             # 在主线程中更新UI
@@ -556,6 +571,10 @@ class FileFilterApp:
             result_message += f"• 未命中文件 -> 未命中文件/"
 
             messagebox.showinfo("处理完成", result_message)
+
+            # 刷新撤销面板
+            if hasattr(self, 'undo_panel'):
+                self.undo_panel.refresh_operations()
 
     def __del__(self):
         """析构函数，清理临时目录"""
