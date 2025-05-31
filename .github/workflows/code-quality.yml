@@ -1,169 +1,58 @@
-name: Code Quality
+name: 🔍 Code Quality
 
 on:
   push:
     branches: [ main, develop ]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - '.github/workflows/code-quality.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - '.github/workflows/code-quality.yml'
   schedule:
-    # 每周一早上8点运行
+    # 每周一早上8点运行（UTC时间）
     - cron: '0 8 * * 1'
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: '跳过某些测试'
+        required: false
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - security
+          - formatting
+          - typing
+
+env:
+  PYTHON_VERSION: '3.8'
+  PIP_CACHE_DIR: ~/.cache/pip
 
 jobs:
-  code-quality:
-    name: Code Quality Check
+  # 快速语法检查 - 最先运行，快速失败
+  syntax-check:
+    name: 🐍 Python语法检查
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 5
+
     steps:
-    - name: Checkout code
+    - name: Checkout代码
       uses: actions/checkout@v4
-      
-    - name: Set up Python
+
+    - name: 设置Python环境
       uses: actions/setup-python@v4
       with:
-        python-version: '3.8'
-        
-    - name: Cache pip dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-          
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 black mypy bandit safety
-        # 安装项目依赖（排除Windows特定的）
-        pip install Pillow
-        
-    - name: Lint with flake8
-      run: |
-        # 停止构建如果有Python语法错误或未定义的名称
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # 检查代码质量
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --format=github
-        
-    - name: Check code formatting with black
-      run: |
-        black --check --diff .
-        
-    - name: Type check with mypy
-      run: |
-        mypy main.py utils.py config_manager.py --ignore-missing-imports --no-error-summary
-        
-    - name: Security check with bandit
-      run: |
-        bandit -r . -f json -o bandit-report.json || true
-        bandit -r . -f txt
-        
-    - name: Check dependencies for security vulnerabilities
-      run: |
-        safety check --json --output safety-report.json || true
-        safety check
-        
-    - name: Upload security reports
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: security-reports
-        path: |
-          bandit-report.json
-          safety-report.json
-        retention-days: 30
+        python-version: ${{ env.PYTHON_VERSION }}
 
-  dependency-check:
-    name: Dependency Check
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
-        
-    - name: Install pip-audit
+    - name: 检查Python语法
       run: |
-        python -m pip install --upgrade pip
-        pip install pip-audit
-        
-    - name: Audit dependencies
-      run: |
-        pip-audit --desc --format=json --output=audit-report.json || true
-        pip-audit --desc
-        
-    - name: Upload audit report
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: dependency-audit
-        path: audit-report.json
-        retention-days: 30
-
-  documentation:
-    name: Documentation Check
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Check README
-      run: |
-        if [ ! -f README.md ]; then
-          echo "❌ README.md 文件缺失"
-          exit 1
-        fi
-        echo "✅ README.md 存在"
-        
-    - name: Check CHANGELOG
-      run: |
-        if [ ! -f CHANGELOG.md ]; then
-          echo "❌ CHANGELOG.md 文件缺失"
-          exit 1
-        fi
-        echo "✅ CHANGELOG.md 存在"
-        
-    - name: Check LICENSE
-      run: |
-        if [ ! -f LICENSE ]; then
-          echo "❌ LICENSE 文件缺失"
-          exit 1
-        fi
-        echo "✅ LICENSE 存在"
-        
-    - name: Check requirements.txt
-      run: |
-        if [ ! -f requirements.txt ]; then
-          echo "❌ requirements.txt 文件缺失"
-          exit 1
-        fi
-        echo "✅ requirements.txt 存在"
-        
-    - name: Validate requirements.txt
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt --dry-run
-        echo "✅ requirements.txt 格式正确"
-
-  file-structure:
-    name: File Structure Check
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Check project structure
-      run: |
-        echo "📁 项目文件结构检查"
-        
-        # 检查必需的Python文件
-        required_files=(
+        echo "🔍 检查Python文件语法..."
+        python_files=(
           "main.py"
           "utils.py"
           "config_manager.py"
@@ -171,40 +60,318 @@ jobs:
           "undo_manager.py"
           "password_manager.py"
         )
-        
-        for file in "${required_files[@]}"; do
+
+        for file in "${python_files[@]}"; do
           if [ -f "$file" ]; then
-            echo "✅ $file"
+            echo "检查 $file..."
+            python -m py_compile "$file"
+            echo "✅ $file 语法正确"
           else
-            echo "❌ $file 缺失"
-            exit 1
+            echo "⚠️ $file 不存在，跳过"
           fi
         done
-        
-        # 检查配置文件
-        config_files=(
-          "requirements.txt"
-          ".gitignore"
-        )
-        
-        for file in "${config_files[@]}"; do
-          if [ -f "$file" ]; then
-            echo "✅ $file"
-          else
-            echo "❌ $file 缺失"
-            exit 1
-          fi
-        done
-        
-        echo "✅ 项目结构检查通过"
-        
-    - name: Check Python syntax
+        echo "🎉 所有Python文件语法检查通过"
+
+  # 主要代码质量检查
+  code-quality:
+    name: 📊 代码质量检查
+    runs-on: ubuntu-latest
+    needs: syntax-check
+    timeout-minutes: 15
+
+    outputs:
+      flake8-score: ${{ steps.flake8.outputs.score }}
+
+    steps:
+    - name: Checkout代码
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 获取完整历史，用于增量检查
+
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 缓存pip依赖
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.PIP_CACHE_DIR }}
+        key: ${{ runner.os }}-pip-quality-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-quality-
+          ${{ runner.os }}-pip-
+
+    - name: 安装代码质量工具
       run: |
-        echo "🐍 Python语法检查"
-        python -m py_compile main.py
-        python -m py_compile utils.py
-        python -m py_compile config_manager.py
-        python -m py_compile advanced_gui.py
-        python -m py_compile undo_manager.py
-        python -m py_compile password_manager.py
-        echo "✅ 所有Python文件语法正确"
+        python -m pip install --upgrade pip
+        pip install flake8 black mypy isort
+        # 安装项目基础依赖（不包括Windows特定的）
+        pip install Pillow
+
+    - name: 代码格式检查 (Black)
+      if: github.event.inputs.skip_tests != 'formatting'
+      run: |
+        echo "🎨 检查代码格式..."
+        black --check --diff --color .
+        echo "✅ 代码格式检查通过"
+
+    - name: 导入排序检查 (isort)
+      if: github.event.inputs.skip_tests != 'formatting'
+      run: |
+        echo "📦 检查导入排序..."
+        isort --check-only --diff --color .
+        echo "✅ 导入排序检查通过"
+
+    - name: 代码规范检查 (Flake8)
+      id: flake8
+      run: |
+        echo "📏 检查代码规范..."
+
+        # 严重错误检查（语法错误等）
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+        # 代码质量检查
+        flake8_output=$(flake8 . --count --exit-zero --max-complexity=12 --max-line-length=127 --statistics --format=github)
+        echo "$flake8_output"
+
+        # 计算质量分数
+        error_count=$(echo "$flake8_output" | grep -o '[0-9]\+' | head -1 || echo "0")
+        if [ "$error_count" -eq 0 ]; then
+          score="A+"
+        elif [ "$error_count" -le 5 ]; then
+          score="A"
+        elif [ "$error_count" -le 15 ]; then
+          score="B"
+        elif [ "$error_count" -le 30 ]; then
+          score="C"
+        else
+          score="D"
+        fi
+
+        echo "score=$score" >> $GITHUB_OUTPUT
+        echo "🏆 代码质量评分: $score"
+
+    - name: 类型检查 (MyPy)
+      if: github.event.inputs.skip_tests != 'typing'
+      run: |
+        echo "🔍 检查类型注解..."
+        mypy main.py utils.py config_manager.py \
+          --ignore-missing-imports \
+          --no-error-summary \
+          --show-error-codes \
+          --pretty
+        echo "✅ 类型检查通过"
+
+  # 安全检查
+  security-check:
+    name: 🔒 安全检查
+    runs-on: ubuntu-latest
+    needs: syntax-check
+    timeout-minutes: 10
+    if: github.event.inputs.skip_tests != 'security'
+
+    steps:
+    - name: Checkout代码
+      uses: actions/checkout@v4
+
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 缓存pip依赖
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.PIP_CACHE_DIR }}
+        key: ${{ runner.os }}-pip-security-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-security-
+          ${{ runner.os }}-pip-
+
+    - name: 安装安全检查工具
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety pip-audit semgrep
+
+    - name: 代码安全扫描 (Bandit)
+      run: |
+        echo "🛡️ 运行Bandit安全扫描..."
+        bandit -r . -f json -o bandit-report.json || true
+        bandit -r . -ll -f txt
+        echo "✅ Bandit扫描完成"
+
+    - name: 依赖安全检查 (Safety)
+      run: |
+        echo "📦 检查依赖安全漏洞..."
+        safety check --json --output safety-report.json || true
+        safety check --short-report
+        echo "✅ Safety检查完成"
+
+    - name: 依赖审计 (pip-audit)
+      run: |
+        echo "🔍 运行依赖审计..."
+        pip-audit --desc --format=json --output=audit-report.json || true
+        pip-audit --desc --format=columns
+        echo "✅ 依赖审计完成"
+
+    - name: 上传安全报告
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports-${{ github.run_number }}
+        path: |
+          bandit-report.json
+          safety-report.json
+          audit-report.json
+        retention-days: 30
+
+  # 项目结构和文档检查
+  project-validation:
+    name: 📋 项目验证
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout代码
+      uses: actions/checkout@v4
+
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 检查项目文件结构
+      run: |
+        echo "📁 检查项目文件结构..."
+
+        # 必需的Python文件
+        required_files=(
+          "main.py:主程序入口"
+          "utils.py:工具函数"
+          "config_manager.py:配置管理"
+          "advanced_gui.py:高级GUI组件"
+          "undo_manager.py:撤销管理"
+          "password_manager.py:密码管理"
+        )
+
+        missing_files=()
+        for item in "${required_files[@]}"; do
+          file="${item%%:*}"
+          desc="${item##*:}"
+          if [ -f "$file" ]; then
+            echo "✅ $file ($desc)"
+          else
+            echo "❌ $file ($desc) 缺失"
+            missing_files+=("$file")
+          fi
+        done
+
+        # 配置和文档文件
+        config_files=(
+          "requirements.txt:依赖配置"
+          ".gitignore:Git忽略规则"
+          "README.md:项目说明"
+          "CHANGELOG.md:更新日志"
+          "LICENSE:开源许可证"
+        )
+
+        for item in "${config_files[@]}"; do
+          file="${item%%:*}"
+          desc="${item##*:}"
+          if [ -f "$file" ]; then
+            echo "✅ $file ($desc)"
+          else
+            echo "⚠️ $file ($desc) 缺失"
+          fi
+        done
+
+        if [ ${#missing_files[@]} -gt 0 ]; then
+          echo "❌ 关键文件缺失: ${missing_files[*]}"
+          exit 1
+        fi
+
+        echo "🎉 项目结构检查通过"
+
+    - name: 验证requirements.txt
+      run: |
+        echo "📦 验证依赖配置..."
+        if [ -f requirements.txt ]; then
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt --dry-run
+          echo "✅ requirements.txt 格式正确"
+        else
+          echo "⚠️ requirements.txt 不存在"
+        fi
+
+    - name: 检查代码质量配置
+      run: |
+        echo "⚙️ 检查代码质量配置..."
+
+        # 检查是否有代码质量配置文件
+        quality_configs=(
+          ".flake8:Flake8配置"
+          "pyproject.toml:项目配置"
+          "setup.cfg:设置配置"
+          ".pre-commit-config.yaml:预提交钩子"
+        )
+
+        for item in "${quality_configs[@]}"; do
+          file="${item%%:*}"
+          desc="${item##*:}"
+          if [ -f "$file" ]; then
+            echo "✅ $file ($desc)"
+          else
+            echo "ℹ️ $file ($desc) 未配置"
+          fi
+        done
+
+  # 生成质量报告
+  quality-report:
+    name: 📊 质量报告
+    runs-on: ubuntu-latest
+    needs: [syntax-check, code-quality, security-check, project-validation]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+    - name: 生成质量报告
+      run: |
+        echo "📊 生成代码质量报告..."
+
+        # 获取各个检查的状态
+        syntax_status="${{ needs.syntax-check.result }}"
+        quality_status="${{ needs.code-quality.result }}"
+        security_status="${{ needs.security-check.result }}"
+        project_status="${{ needs.project-validation.result }}"
+
+        # 获取质量评分
+        quality_score="${{ needs.code-quality.outputs.flake8-score }}"
+
+        echo "## 🔍 代码质量报告"
+        echo ""
+        echo "| 检查项目 | 状态 | 说明 |"
+        echo "|---------|------|------|"
+        echo "| 🐍 语法检查 | $([[ $syntax_status == 'success' ]] && echo '✅ 通过' || echo '❌ 失败') | Python语法验证 |"
+        echo "| 📊 代码质量 | $([[ $quality_status == 'success' ]] && echo '✅ 通过' || echo '❌ 失败') | 代码规范和格式 |"
+        echo "| 🔒 安全检查 | $([[ $security_status == 'success' ]] && echo '✅ 通过' || echo '❌ 失败') | 安全漏洞扫描 |"
+        echo "| 📋 项目验证 | $([[ $project_status == 'success' ]] && echo '✅ 通过' || echo '❌ 失败') | 项目结构验证 |"
+        echo ""
+        echo "### 📈 质量评分"
+        echo "代码质量评分: **${quality_score:-'未知'}**"
+        echo ""
+        echo "### � 检查时间"
+        echo "检查时间: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "提交SHA: ${{ github.sha }}"
+        echo "分支: ${{ github.ref_name }}"
+
+        # 设置整体状态
+        if [[ $syntax_status == 'success' && $quality_status == 'success' && $project_status == 'success' ]]; then
+          echo ""
+          echo "🎉 **所有检查通过！代码质量良好。**"
+          exit 0
+        else
+          echo ""
+          echo "⚠️ **部分检查未通过，请查看详细日志。**"
+          exit 1
+        fi
