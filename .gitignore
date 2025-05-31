@@ -1,0 +1,259 @@
+# Windows 文件筛选与移动工具 - Git忽略文件
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# 项目特定文件
+# 工作目录
+extracted_files/
+temp_extract/
+backup/
+
+# 日志文件
+logs/
+*.log
+
+# 配置文件（包含用户数据）
+config.json
+undo_history.json
+
+# 测试文件
+test_*.zip
+test_*.rar
+test_*.7z
+*.test
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# IDE和编辑器
+*.sublime-project
+*.sublime-workspace
+.vscode/
+.idea/
+*.iml
+
+# 打包文件
+*.exe
+*.msi
+*.dmg
+*.pkg
+*.deb
+*.rpm
+
+# 压缩文件（测试用）
+sample_*.zip
+sample_*.rar
+sample_*.7z
+demo_*.zip
+demo_*.rar
+demo_*.7z
+
+# 文档生成
+docs/_build/
+docs/build/
+
+# 其他
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 项目特定的忽略
+# 构建和发布相关
+release/
+create_release.py
+build_exe.bat
+simple_icon.py
+create_icon.py
+app_icon.png
+
+# PyInstaller生成的spec文件（保留自定义的）
+文件筛选与移动工具.spec
+
+# 图标文件（保留app_icon.ico）
+*.png
+!app_icon.ico
+
+# 部署文档（临时生成）
+部署说明.md
+
+# 如果有特定的测试数据或配置文件需要忽略，在这里添加
