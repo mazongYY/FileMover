@@ -1,0 +1,30 @@
+Windows 文件筛选与移动工具 v4.0
+
+构建时间: 2025-05-31 08:56:34
+Python版本: 3.8.6
+PyInstaller版本: 3.6
+
+包含文件:
+- 文件筛选与移动工具.exe (主程序)
+- 项目说明.md
+- 安装说明.md  
+- 使用手册.md
+- 更新日志.md
+- 许可证.txt
+- 开发文档.md
+- 配置示例.json
+- 快速开始.txt
+- 版本信息.txt
+
+系统要求:
+- Windows 7/8/10/11 (64位)
+- 最少 512MB RAM
+- 最少 100MB 磁盘空间
+
+支持格式:
+- ZIP压缩包
+- RAR压缩包 (需要WinRAR)
+- 7Z压缩包
+
+开发者: mazongYY
+项目地址: https://github.com/mazongYY/tools

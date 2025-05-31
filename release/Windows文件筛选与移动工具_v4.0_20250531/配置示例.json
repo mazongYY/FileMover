@@ -1,0 +1,21 @@
+{
+  "version": "4.0.0",
+  "user_preferences": {
+    "keywords_history": [
+      "报告",
+      "文档",
+      "2024",
+      "重要"
+    ],
+    "file_types": {
+      "enabled": false,
+      "selected_types": [
+        "文档",
+        "图片"
+      ],
+      "custom_types": []
+    },
+    "regex_mode": false,
+    "operation_mode": "move"
+  }
+}
