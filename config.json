@@ -1,6 +1,6 @@
 {
   "version": "4.0.0",
-  "last_updated": "2025-05-31T00:19:53.764187",
+  "last_updated": "2025-05-31T09:07:38.321596",
   "user_preferences": {
     "keywords_history": [],
     "file_types": {
@@ -23,7 +23,7 @@
       }
     },
     "ui_settings": {
-      "window_geometry": "1400x900+260+90",
+      "window_geometry": "1200x800+360+140",
       "remember_last_archive": true,
       "auto_preview": false
     }

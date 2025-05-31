@@ -1,0 +1,210 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # 每周一早上8点运行
+    - cron: '0 8 * * 1'
+
+jobs:
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black mypy bandit safety
+        # 安装项目依赖（排除Windows特定的）
+        pip install Pillow
+        
+    - name: Lint with flake8
+      run: |
+        # 停止构建如果有Python语法错误或未定义的名称
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # 检查代码质量
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --format=github
+        
+    - name: Check code formatting with black
+      run: |
+        black --check --diff .
+        
+    - name: Type check with mypy
+      run: |
+        mypy main.py utils.py config_manager.py --ignore-missing-imports --no-error-summary
+        
+    - name: Security check with bandit
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+        bandit -r . -f txt
+        
+    - name: Check dependencies for security vulnerabilities
+      run: |
+        safety check --json --output safety-report.json || true
+        safety check
+        
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+        retention-days: 30
+
+  dependency-check:
+    name: Dependency Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        
+    - name: Install pip-audit
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-audit
+        
+    - name: Audit dependencies
+      run: |
+        pip-audit --desc --format=json --output=audit-report.json || true
+        pip-audit --desc
+        
+    - name: Upload audit report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: dependency-audit
+        path: audit-report.json
+        retention-days: 30
+
+  documentation:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check README
+      run: |
+        if [ ! -f README.md ]; then
+          echo "❌ README.md 文件缺失"
+          exit 1
+        fi
+        echo "✅ README.md 存在"
+        
+    - name: Check CHANGELOG
+      run: |
+        if [ ! -f CHANGELOG.md ]; then
+          echo "❌ CHANGELOG.md 文件缺失"
+          exit 1
+        fi
+        echo "✅ CHANGELOG.md 存在"
+        
+    - name: Check LICENSE
+      run: |
+        if [ ! -f LICENSE ]; then
+          echo "❌ LICENSE 文件缺失"
+          exit 1
+        fi
+        echo "✅ LICENSE 存在"
+        
+    - name: Check requirements.txt
+      run: |
+        if [ ! -f requirements.txt ]; then
+          echo "❌ requirements.txt 文件缺失"
+          exit 1
+        fi
+        echo "✅ requirements.txt 存在"
+        
+    - name: Validate requirements.txt
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt --dry-run
+        echo "✅ requirements.txt 格式正确"
+
+  file-structure:
+    name: File Structure Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check project structure
+      run: |
+        echo "📁 项目文件结构检查"
+        
+        # 检查必需的Python文件
+        required_files=(
+          "main.py"
+          "utils.py"
+          "config_manager.py"
+          "advanced_gui.py"
+          "undo_manager.py"
+          "password_manager.py"
+        )
+        
+        for file in "${required_files[@]}"; do
+          if [ -f "$file" ]; then
+            echo "✅ $file"
+          else
+            echo "❌ $file 缺失"
+            exit 1
+          fi
+        done
+        
+        # 检查配置文件
+        config_files=(
+          "requirements.txt"
+          ".gitignore"
+        )
+        
+        for file in "${config_files[@]}"; do
+          if [ -f "$file" ]; then
+            echo "✅ $file"
+          else
+            echo "❌ $file 缺失"
+            exit 1
+          fi
+        done
+        
+        echo "✅ 项目结构检查通过"
+        
+    - name: Check Python syntax
+      run: |
+        echo "🐍 Python语法检查"
+        python -m py_compile main.py
+        python -m py_compile utils.py
+        python -m py_compile config_manager.py
+        python -m py_compile advanced_gui.py
+        python -m py_compile undo_manager.py
+        python -m py_compile password_manager.py
+        echo "✅ 所有Python文件语法正确"
