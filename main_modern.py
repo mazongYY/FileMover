@@ -99,7 +99,7 @@ class ModernFileFilterApp:
                 'text_disabled': '#666666',
                 'border': '#333333',
                 'divider': '#2D2D2D',
-                'shadow': '#00000040'
+                'shadow': '#1A1A1A'
             }
         else:
             self.colors = {
@@ -117,7 +117,7 @@ class ModernFileFilterApp:
                 'text_disabled': '#BDBDBD',
                 'border': '#E0E0E0',
                 'divider': '#E0E0E0',
-                'shadow': '#00000020'
+                'shadow': '#D0D0D0'
             }
     
     def setup_modern_ui(self):
@@ -318,7 +318,7 @@ class ModernFileFilterApp:
         # 大型拖拽区域
         drop_zone = tk.Frame(parent,
                            bg=self.colors['surface_variant'],
-                           relief='dashed',
+                           relief='groove',
                            bd=2,
                            height=120)
         drop_zone.pack(fill="x", pady=(0, 16))
@@ -444,27 +444,358 @@ class ModernFileFilterApp:
     
     def setup_operation_mode(self, parent):
         """设置操作模式区域"""
-        pass
+        # 模式选择说明
+        mode_label = tk.Label(parent,
+                            text="选择文件处理方式：",
+                            font=('Microsoft YaHei UI', 11, 'bold'),
+                            fg=self.colors['text_primary'],
+                            bg=self.colors['surface'])
+        mode_label.pack(anchor="w", pady=(0, 16))
+
+        # 模式选项容器
+        mode_container = tk.Frame(parent, bg=self.colors['surface'])
+        mode_container.pack(fill="x", pady=(0, 16))
+
+        # 创建现代化单选按钮
+        self.mode_buttons = []
+        modes = [
+            ("move", "移动文件", "📁", "将匹配的文件移动到目标文件夹"),
+            ("copy", "复制文件", "📋", "将匹配的文件复制到目标文件夹"),
+            ("link", "创建链接", "🔗", "为匹配的文件创建快捷方式")
+        ]
+
+        for i, (value, text, icon, desc) in enumerate(modes):
+            # 模式选项框
+            mode_frame = tk.Frame(mode_container,
+                                bg=self.colors['surface_variant'],
+                                relief='solid',
+                                bd=1,
+                                padx=16,
+                                pady=12)
+            mode_frame.pack(fill="x", pady=(0, 8))
+
+            # 单选按钮
+            radio = tk.Radiobutton(mode_frame,
+                                 text="",
+                                 variable=self.operation_var,
+                                 value=value,
+                                 bg=self.colors['surface_variant'],
+                                 fg=self.colors['primary'],
+                                 selectcolor=self.colors['primary'],
+                                 activebackground=self.colors['surface_variant'],
+                                 command=self.on_mode_changed)
+            radio.pack(side="left")
+
+            # 图标和文字
+            content_frame = tk.Frame(mode_frame, bg=self.colors['surface_variant'])
+            content_frame.pack(side="left", fill="x", expand=True, padx=(8, 0))
+
+            # 标题行
+            title_frame = tk.Frame(content_frame, bg=self.colors['surface_variant'])
+            title_frame.pack(fill="x")
+
+            icon_label = tk.Label(title_frame,
+                                text=icon,
+                                font=('Segoe UI Emoji', 16),
+                                bg=self.colors['surface_variant'])
+            icon_label.pack(side="left", padx=(0, 8))
+
+            title_label = tk.Label(title_frame,
+                                 text=text,
+                                 font=('Microsoft YaHei UI', 11, 'bold'),
+                                 fg=self.colors['text_primary'],
+                                 bg=self.colors['surface_variant'])
+            title_label.pack(side="left")
+
+            # 描述文字
+            desc_label = tk.Label(content_frame,
+                                text=desc,
+                                font=('Microsoft YaHei UI', 9),
+                                fg=self.colors['text_secondary'],
+                                bg=self.colors['surface_variant'])
+            desc_label.pack(anchor="w", pady=(4, 0))
+
+            self.mode_buttons.append((mode_frame, radio))
+
+            # 绑定点击事件
+            for widget in [mode_frame, content_frame, title_frame, icon_label, title_label, desc_label]:
+                widget.bind("<Button-1>", lambda e, v=value: self.select_mode(v))
+
+        # 默认选择移动模式
+        self.select_mode("move")
     
     def setup_advanced_filters(self, parent):
         """设置高级过滤区域"""
-        pass
+        # 正则表达式选项
+        regex_frame = tk.Frame(parent, bg=self.colors['surface'])
+        regex_frame.pack(fill="x", pady=(0, 16))
+
+        self.regex_var = tk.BooleanVar()
+        regex_check = tk.Checkbutton(regex_frame,
+                                   text="🔧 使用正则表达式匹配",
+                                   variable=self.regex_var,
+                                   font=('Microsoft YaHei UI', 11),
+                                   fg=self.colors['text_primary'],
+                                   bg=self.colors['surface'],
+                                   selectcolor=self.colors['primary'],
+                                   activebackground=self.colors['surface'])
+        regex_check.pack(anchor="w")
+
+        # 正则表达式帮助
+        regex_help = tk.Label(regex_frame,
+                            text="💡 提示: 使用 .* 匹配任意字符，\\d+ 匹配数字",
+                            font=('Microsoft YaHei UI', 9),
+                            fg=self.colors['text_secondary'],
+                            bg=self.colors['surface'])
+        regex_help.pack(anchor="w", pady=(4, 0))
+
+        # 文件类型过滤
+        type_frame = tk.Frame(parent, bg=self.colors['surface'])
+        type_frame.pack(fill="x", pady=(0, 16))
+
+        type_label = tk.Label(type_frame,
+                            text="📄 文件类型过滤:",
+                            font=('Microsoft YaHei UI', 11, 'bold'),
+                            fg=self.colors['text_primary'],
+                            bg=self.colors['surface'])
+        type_label.pack(anchor="w", pady=(0, 8))
+
+        # 文件类型选项
+        type_options = tk.Frame(type_frame, bg=self.colors['surface'])
+        type_options.pack(fill="x")
+
+        self.file_type_vars = {}
+        file_types = [
+            ("图片", ["jpg", "png", "gif", "bmp"]),
+            ("文档", ["doc", "pdf", "txt", "rtf"]),
+            ("视频", ["mp4", "avi", "mkv", "mov"]),
+            ("音频", ["mp3", "wav", "flac", "aac"])
+        ]
+
+        for i, (type_name, extensions) in enumerate(file_types):
+            var = tk.BooleanVar()
+            self.file_type_vars[type_name] = var
+
+            check = tk.Checkbutton(type_options,
+                                 text=f"{type_name}",
+                                 variable=var,
+                                 font=('Microsoft YaHei UI', 10),
+                                 fg=self.colors['text_primary'],
+                                 bg=self.colors['surface'],
+                                 selectcolor=self.colors['primary'],
+                                 activebackground=self.colors['surface'])
+
+            # 两列布局
+            row = i // 2
+            col = i % 2
+            check.grid(row=row, column=col, sticky="w", padx=(0, 20), pady=2)
+
+        type_options.grid_columnconfigure(0, weight=1)
+        type_options.grid_columnconfigure(1, weight=1)
     
     def setup_status_display(self, parent):
         """设置状态显示区域"""
-        pass
+        # 当前状态显示
+        status_frame = tk.Frame(parent, bg=self.colors['surface'])
+        status_frame.pack(fill="x", pady=(0, 16))
+
+        # 状态图标和文字
+        self.status_icon = tk.Label(status_frame,
+                                  text="⚪",
+                                  font=('Segoe UI Emoji', 20),
+                                  fg=self.colors['text_secondary'],
+                                  bg=self.colors['surface'])
+        self.status_icon.pack(side="left", padx=(0, 12))
+
+        status_text_frame = tk.Frame(status_frame, bg=self.colors['surface'])
+        status_text_frame.pack(side="left", fill="x", expand=True)
+
+        self.status_text = tk.Label(status_text_frame,
+                                  text="就绪",
+                                  font=('Microsoft YaHei UI', 14, 'bold'),
+                                  fg=self.colors['text_primary'],
+                                  bg=self.colors['surface'])
+        self.status_text.pack(anchor="w")
+
+        self.status_detail = tk.Label(status_text_frame,
+                                    text="等待用户操作",
+                                    font=('Microsoft YaHei UI', 10),
+                                    fg=self.colors['text_secondary'],
+                                    bg=self.colors['surface'])
+        self.status_detail.pack(anchor="w")
+
+        # 进度条
+        self.progress_bar = ModernProgressBar(parent, self.colors)
+        self.progress_bar.container.pack(fill="x", pady=(0, 16))
+
+        # 统计信息
+        stats_frame = tk.Frame(parent, bg=self.colors['surface'])
+        stats_frame.pack(fill="x")
+
+        # 统计卡片
+        self.create_stat_card(stats_frame, "处理文件", "0", "📄")
+        self.create_stat_card(stats_frame, "匹配成功", "0", "✅")
+        self.create_stat_card(stats_frame, "处理时间", "0s", "⏱️")
+
+    def create_stat_card(self, parent, label, value, icon):
+        """创建统计卡片"""
+        card = tk.Frame(parent,
+                       bg=self.colors['surface_variant'],
+                       relief='flat',
+                       bd=1,
+                       padx=12,
+                       pady=8)
+        card.pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+        # 图标
+        icon_label = tk.Label(card,
+                            text=icon,
+                            font=('Segoe UI Emoji', 16),
+                            bg=self.colors['surface_variant'])
+        icon_label.pack()
+
+        # 数值
+        value_label = tk.Label(card,
+                             text=value,
+                             font=('Microsoft YaHei UI', 14, 'bold'),
+                             fg=self.colors['text_primary'],
+                             bg=self.colors['surface_variant'])
+        value_label.pack()
+
+        # 标签
+        label_widget = tk.Label(card,
+                              text=label,
+                              font=('Microsoft YaHei UI', 9),
+                              fg=self.colors['text_secondary'],
+                              bg=self.colors['surface_variant'])
+        label_widget.pack()
+
+        # 保存引用以便更新
+        setattr(self, f"stat_{label.replace(' ', '_').lower()}_value", value_label)
     
+    def setup_drag_drop(self, widget):
+        """设置拖拽功能"""
+        # 简化的拖拽实现
+        def on_click(event):
+            self.select_archive()
+
+        widget.bind("<Button-1>", on_click)
+
+        # 悬停效果
+        def on_enter(event):
+            widget.config(bg=self.colors['primary'], relief='solid')
+
+        def on_leave(event):
+            widget.config(bg=self.colors['surface_variant'], relief='groove')
+
+        widget.bind("<Enter>", on_enter)
+        widget.bind("<Leave>", on_leave)
+
+    def select_mode(self, mode):
+        """选择操作模式"""
+        self.operation_var.set(mode)
+        self.update_mode_display()
+
+    def update_mode_display(self):
+        """更新模式显示"""
+        selected_mode = self.operation_var.get()
+
+        for frame, radio in self.mode_buttons:
+            if radio.cget('value') == selected_mode:
+                frame.config(bg=self.colors['primary'], relief='solid', bd=2)
+                # 更新内部组件背景色
+                for child in frame.winfo_children():
+                    if hasattr(child, 'config'):
+                        try:
+                            child.config(bg=self.colors['primary'])
+                        except:
+                            pass
+            else:
+                frame.config(bg=self.colors['surface_variant'], relief='solid', bd=1)
+                # 恢复内部组件背景色
+                for child in frame.winfo_children():
+                    if hasattr(child, 'config'):
+                        try:
+                            child.config(bg=self.colors['surface_variant'])
+                        except:
+                            pass
+
+    def on_mode_changed(self):
+        """模式改变事件"""
+        self.update_mode_display()
+
+    def clear_keywords(self):
+        """清空关键字"""
+        self.keyword_text.delete(1.0, tk.END)
+
+    def insert_example_keywords(self):
+        """插入示例关键字"""
+        examples = ["图片", "文档", "视频", "音频", "压缩包"]
+        self.keyword_text.delete(1.0, tk.END)
+        self.keyword_text.insert(1.0, "\n".join(examples))
+
+    def select_archive(self):
+        """选择压缩包"""
+        archive_path = filedialog.askopenfilename(
+            title="选择压缩包",
+            filetypes=[
+                ("压缩包文件", "*.zip;*.rar;*.7z"),
+                ("ZIP文件", "*.zip"),
+                ("RAR文件", "*.rar"),
+                ("7Z文件", "*.7z"),
+                ("所有文件", "*.*")
+            ]
+        )
+
+        if archive_path:
+            self.file_input.set(archive_path)
+            self.archive_var.set(archive_path)
+
+            # 更新文件信息
+            file_name = os.path.basename(archive_path)
+            file_size = self.format_file_size(os.path.getsize(archive_path))
+            self.file_info_label.config(text=f"✅ {file_name} ({file_size})")
+
+    def format_file_size(self, size_bytes):
+        """格式化文件大小"""
+        if size_bytes == 0:
+            return "0 B"
+        size_names = ["B", "KB", "MB", "GB"]
+        i = 0
+        while size_bytes >= 1024 and i < len(size_names) - 1:
+            size_bytes /= 1024.0
+            i += 1
+        return f"{size_bytes:.1f} {size_names[i]}"
+
+    def update_status(self, text, detail="", icon="⚪"):
+        """更新状态显示"""
+        self.status_text.config(text=text)
+        self.status_detail.config(text=detail)
+        self.status_icon.config(text=icon)
+
     def toggle_theme(self):
         """切换主题"""
-        pass
-    
+        current_mode = self.config_manager.get("user_preferences.ui_settings.theme_mode", "auto")
+
+        if current_mode == "auto":
+            new_mode = "dark"
+        elif current_mode == "dark":
+            new_mode = "light"
+        else:
+            new_mode = "auto"
+
+        self.config_manager.set("user_preferences.ui_settings.theme_mode", new_mode)
+        self.config_manager.save_config()
+
+        messagebox.showinfo("主题切换", f"主题已切换，请重启程序以应用新主题")
+
     def preview_files(self):
         """预览文件"""
-        pass
-    
+        messagebox.showinfo("预览功能", "预览功能正在开发中...")
+
     def start_processing(self):
         """开始处理"""
-        pass
+        messagebox.showinfo("处理功能", "处理功能正在开发中...")
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ class ModernCard:
             'text_primary': '#212121',
             'text_secondary': '#757575',
             'divider': '#E0E0E0',
-            'shadow': '#00000020'
+            'shadow': '#D0D0D0'
         }
     
     def create_card(self):
