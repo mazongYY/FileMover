@@ -44,7 +44,10 @@ class ConfigManager:
                 "ui_settings": {
                     "window_geometry": "700x600",
                     "remember_last_archive": True,
-                    "auto_preview": False
+                    "auto_preview": False,
+                    "last_archive_directory": "",
+                    "auto_open_result_folder": True,
+                    "extracted_files_location": "desktop"  # "desktop" or "current"
                 }
             },
             "file_type_presets": {

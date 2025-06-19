@@ -8,7 +8,7 @@ from utils import (find_and_move_files, validate_directory, count_matching_files
                    count_matching_files_in_archive, cleanup_temp_directory,
                    setup_logging, initialize_project_directories)
 from config_manager import ConfigManager
-from advanced_gui import FileTypeSelector, AdvancedFilters, DragDropFrame, ArchivePreview, UndoPanel
+from advanced_gui import FileTypeSelector, AdvancedFilters
 from undo_manager import UndoManager
 from password_manager import PasswordManager
 
@@ -41,19 +41,131 @@ class FileFilterApp:
 
         # 初始化项目目录
         try:
-            self.extracted_dir, self.matched_dir, self.unmatched_dir = initialize_project_directories()
-            self.logger.info("项目目录初始化完成")
+            # 获取extracted_files目录位置配置
+            location = self.config_manager.get("user_preferences.ui_settings.extracted_files_location", "current")
+            self.extracted_dir, self.matched_dir, self.unmatched_dir = initialize_project_directories(location)
+            self.logger.info(f"项目目录初始化完成，位置: {location}")
         except Exception as e:
             self.logger.error(f"项目目录初始化失败: {e}")
             messagebox.showerror("初始化错误", f"无法初始化项目目录: {e}")
 
+        # 检查压缩格式支持
+        self.check_format_support()
+
         # 添加临时目录跟踪
         self.temp_extract_dir = None
+
+        # 初始化现代化样式
+        self.setup_modern_styles()
 
         # 加载用户配置
         self.load_user_settings()
 
         self.setup_ui()
+
+    def setup_modern_styles(self):
+        """设置现代化样式主题"""
+        self.style = ttk.Style()
+
+        # 检测系统主题
+        self.is_dark_theme = self.detect_system_theme()
+
+        # 定义简化的配色方案 - 浅色/深色
+        if self.is_dark_theme:
+            self.colors = {
+                'primary': '#0078D4',      # 主色调
+                'success': '#107C10',      # 成功色
+                'warning': '#FF8C00',      # 警告色
+                'error': '#D13438',        # 错误色
+                'background': '#202020',   # 深色背景
+                'surface': '#2D2D2D',      # 深色表面
+                'text_primary': '#FFFFFF', # 白色文字
+                'text_secondary': '#CCCCCC', # 浅灰文字
+                'border': '#404040',       # 深色边框
+            }
+        else:
+            self.colors = {
+                'primary': '#0078D4',      # 主色调
+                'success': '#107C10',      # 成功色
+                'warning': '#FF8C00',      # 警告色
+                'error': '#D13438',        # 错误色
+                'background': '#F5F5F5',   # 浅色背景
+                'surface': '#FFFFFF',      # 白色表面
+                'text_primary': '#000000', # 黑色文字
+                'text_secondary': '#666666', # 深灰文字
+                'border': '#D0D0D0',       # 浅色边框
+            }
+
+    def detect_system_theme(self):
+        """检测系统主题"""
+        try:
+            import winreg
+            registry = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
+            key = winreg.OpenKey(registry, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize")
+            value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
+            winreg.CloseKey(key)
+            return value == 0  # 0 = 深色主题, 1 = 浅色主题
+        except:
+            return False  # 默认浅色主题
+
+    def setup_button_styles(self):
+        """配置按钮样式"""
+        # 配置现代化按钮样式
+        self.style.configure(
+            "Modern.TButton",
+            background=self.colors['primary'],
+            foreground='#FFFFFF',  # 纯白色文字，更清晰
+            borderwidth=0,
+            focuscolor='none',
+            padding=(20, 10),
+            font=('Microsoft YaHei UI', 10, 'bold')  # 增大字体并加粗
+        )
+
+        self.style.map(
+            "Modern.TButton",
+            background=[('active', '#005A9E'),  # 悬停时更深的蓝色
+                       ('pressed', '#004578')],  # 按下时最深的蓝色
+            foreground=[('active', '#FFFFFF'),
+                       ('pressed', '#FFFFFF')]
+        )
+
+        # 配置成功按钮样式
+        self.style.configure(
+            "Success.TButton",
+            background=self.colors['success'],
+            foreground='#FFFFFF',  # 纯白色文字
+            borderwidth=0,
+            focuscolor='none',
+            padding=(20, 10),
+            font=('Microsoft YaHei UI', 10, 'bold')  # 增大字体并加粗
+        )
+
+        self.style.map(
+            "Success.TButton",
+            background=[('active', '#0E6B0E'),  # 悬停时更深的绿色
+                       ('pressed', '#0A5A0A')],  # 按下时最深的绿色
+            foreground=[('active', '#FFFFFF'),
+                       ('pressed', '#FFFFFF')]
+        )
+
+        # 配置警告按钮样式
+        self.style.configure(
+            "Warning.TButton",
+            background=self.colors['warning'],
+            foreground='#FFFFFF',  # 纯白色文字
+            borderwidth=0,
+            focuscolor='none',
+            padding=(15, 8),
+            font=('Microsoft YaHei UI', 10, 'bold')  # 增大字体并加粗
+        )
+
+        self.style.map(
+            "Warning.TButton",
+            background=[('active', '#E67E00'),  # 悬停时更深的橙色
+                       ('pressed', '#CC7000')],  # 按下时最深的橙色
+            foreground=[('active', '#FFFFFF'),
+                       ('pressed', '#FFFFFF')]
+        )
 
     def load_user_settings(self):
         """加载用户设置"""
@@ -141,182 +253,700 @@ class FileFilterApp:
             if keywords:
                 self.config_manager.add_keyword_to_history(keywords)
 
+            # 保存当前压缩包目录（如果有的话）
+            current_archive = self.archive_var.get()
+            if current_archive and os.path.exists(current_archive):
+                archive_directory = os.path.dirname(current_archive)
+                self.config_manager.set("user_preferences.ui_settings.last_archive_directory", archive_directory)
+
             self.config_manager.save_config()
             self.logger.info("用户设置保存完成")
         except Exception as e:
             self.logger.error(f"保存用户设置失败: {e}")
 
     def setup_ui(self):
-        """设置用户界面"""
-        # 创建主要的PanedWindow来分割左右区域
-        main_paned = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
-        main_paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        """设置现代化用户界面"""
+        # 配置按钮样式
+        self.setup_button_styles()
 
-        # 左侧面板（控制区域）
-        left_frame = ttk.Frame(main_paned, padding="5")
-        main_paned.add(left_frame, weight=1)
+        # 设置根窗口背景色
+        self.root.configure(bg=self.colors['background'])
 
-        # 右侧面板（预览区域）
-        right_frame = ttk.Frame(main_paned, padding="5")
-        main_paned.add(right_frame, weight=1)
+        # 创建主容器
+        main_container = tk.Frame(self.root, bg=self.colors['background'])
+        main_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-        # 设置左侧面板内容
-        self.setup_left_panel(left_frame)
+        # 创建标题栏
+        self.setup_header(main_container)
 
-        # 设置右侧面板内容
-        self.setup_right_panel(right_frame)
+        # 创建主内容区域
+        content_frame = tk.Frame(main_container, bg=self.colors['background'])
+        content_frame.pack(fill=tk.BOTH, expand=True, pady=(20, 0))
 
-    def setup_left_panel(self, parent):
-        """设置左侧控制面板"""
-        # 使用滚动框架
-        canvas = tk.Canvas(parent)
-        scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
-        scrollable_frame = ttk.Frame(canvas)
+        # 创建左右分栏 - 重新布局功能区域
+        main_paned = ttk.PanedWindow(content_frame, orient=tk.HORIZONTAL)
+        main_paned.pack(fill=tk.BOTH, expand=True)
 
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
+        # 左侧面板 - 30%宽度
+        left_frame = tk.Frame(main_paned, bg=self.colors['background'])
+        main_paned.add(left_frame, weight=30)
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+        # 右侧面板 - 70%宽度
+        right_frame = tk.Frame(main_paned, bg=self.colors['background'])
+        main_paned.add(right_frame, weight=70)
 
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        # 设置左侧功能
+        self.setup_left_functions(left_frame)
 
-        # 拖拽区域
-        self.drag_drop_frame = DragDropFrame(scrollable_frame, self.on_archive_dropped)
-        self.drag_drop_frame.frame.pack(fill="x", pady=(0, 10))
+        # 设置右侧功能
+        self.setup_right_functions(right_frame)
 
-        # 传统文件选择
-        file_select_frame = ttk.LabelFrame(scrollable_frame, text="或选择压缩包文件", padding="5")
-        file_select_frame.pack(fill="x", pady=(0, 10))
+        # 创建隐藏的日志文本框用于内部日志记录
+        self.log_text = tk.Text(self.root, wrap=tk.WORD, font=("Consolas", 9))
 
+    def setup_left_functions(self, parent):
+        """设置左侧功能区域"""
+        # 文件选择和关键字设置
+        self.setup_file_selection_card(parent)
+        self.setup_keywords_card(parent)
+
+    def setup_right_functions(self, parent):
+        """设置右侧功能区域"""
+        # 高级过滤和处理状态
+        self.setup_filters_card(parent)
+        self.setup_actions_card(parent)
+
+    def setup_header(self, parent):
+        """设置标题栏"""
+        header_frame = tk.Frame(parent, bg=self.colors['surface'], height=80)
+        header_frame.pack(fill=tk.X, pady=(0, 10))
+        header_frame.pack_propagate(False)
+
+        # 添加轻微阴影效果（通过边框模拟）
+        header_frame.configure(relief='flat', bd=1, highlightbackground=self.colors['border'])
+
+        # 标题区域
+        title_frame = tk.Frame(header_frame, bg=self.colors['surface'])
+        title_frame.pack(fill=tk.BOTH, expand=True, padx=30, pady=15)
+
+        # 应用图标和标题
+        title_label = tk.Label(title_frame,
+                              text="📦 FileMover v4.0",
+                              font=('Microsoft YaHei UI', 18, 'bold'),
+                              fg=self.colors['primary'],
+                              bg=self.colors['surface'])
+        title_label.pack(side=tk.LEFT)
+
+        # 副标题
+        subtitle_label = tk.Label(title_frame,
+                                text="现代化文件筛选与移动工具",
+                                font=('Microsoft YaHei UI', 10),
+                                fg=self.colors['text_secondary'],
+                                bg=self.colors['surface'])
+        subtitle_label.pack(side=tk.LEFT, padx=(15, 0), pady=(5, 0))
+
+        # 操作控制按钮区域
+        action_frame = tk.Frame(title_frame, bg=self.colors['surface'])
+        action_frame.pack(side=tk.RIGHT)
+
+        # 预览按钮
+        self.preview_button = ttk.Button(action_frame,
+                                       text="👁️ 预览匹配文件",
+                                       style="Modern.TButton",
+                                       command=self.preview_files)
+        self.preview_button.pack(side=tk.RIGHT, padx=(0, 10))
+
+        # 开始处理按钮
+        self.start_button = ttk.Button(action_frame,
+                                     text="🚀 开始处理",
+                                     style="Success.TButton",
+                                     command=self.start_processing)
+        self.start_button.pack(side=tk.RIGHT)
+
+    def setup_footer(self, parent):
+        """设置底部状态栏"""
+        footer_frame = tk.Frame(parent, bg=self.colors['surface'], height=50)
+        footer_frame.pack(fill=tk.X, pady=(10, 0), side=tk.BOTTOM)
+        footer_frame.pack_propagate(False)
+
+        # 添加边框
+        footer_frame.configure(relief='flat', bd=1, highlightbackground=self.colors['border'])
+
+        # 状态信息
+        status_frame = tk.Frame(footer_frame, bg=self.colors['surface'])
+        status_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+
+        # 版权信息
+        copyright_label = tk.Label(status_frame,
+                                 text="© 2024 FileMover - 专业文件处理工具",
+                                 font=('Microsoft YaHei UI', 9),
+                                 fg=self.colors['text_secondary'],
+                                 bg=self.colors['surface'])
+        copyright_label.pack(side=tk.LEFT)
+
+        # 状态指示器
+        self.status_indicator = tk.Label(status_frame,
+                                       text="🟢 就绪",
+                                       font=('Microsoft YaHei UI', 9),
+                                       fg=self.colors['success'],
+                                       bg=self.colors['surface'])
+        self.status_indicator.pack(side=tk.RIGHT)
+
+
+
+    def create_card_frame(self, parent, title, icon=""):
+        """创建现代化卡片框架"""
+        # 卡片容器
+        card_container = tk.Frame(parent, bg=self.colors['background'])
+        card_container.pack(fill="x", pady=(0, 20))
+
+        # 卡片主体
+        card_frame = tk.Frame(card_container,
+                            bg=self.colors['surface'],
+                            relief='flat',
+                            bd=1,
+                            highlightbackground=self.colors['border'],
+                            highlightthickness=1)
+        card_frame.pack(fill="x", padx=5, pady=2)
+
+        # 卡片标题栏
+        title_frame = tk.Frame(card_frame, bg=self.colors['surface'], height=45)
+        title_frame.pack(fill="x", padx=20, pady=(15, 10))
+        title_frame.pack_propagate(False)
+
+        # 标题图标和文字
+        title_label = tk.Label(title_frame,
+                             text=f"{icon} {title}",
+                             font=('Microsoft YaHei UI', 12, 'bold'),
+                             fg=self.colors['text_primary'],
+                             bg=self.colors['surface'])
+        title_label.pack(side=tk.LEFT, anchor='w')
+
+        # 卡片内容区域
+        content_frame = tk.Frame(card_frame, bg=self.colors['surface'])
+        content_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+
+        return content_frame
+
+    def setup_file_selection_card(self, parent):
+        """设置文件选择卡片"""
+        content_frame = self.create_card_frame(parent, "文件选择", "📁")
+
+        # 文件路径输入区域
+        path_label = tk.Label(content_frame,
+                            text="压缩包路径:",
+                            font=('Microsoft YaHei UI', 10),
+                            fg=self.colors['text_primary'],
+                            bg=self.colors['surface'])
+        path_label.pack(anchor="w", pady=(0, 8))
+
+        # 输入框容器
+        input_container = tk.Frame(content_frame, bg=self.colors['surface'])
+        input_container.pack(fill="x", pady=(0, 10))
+
+        # 文件路径输入框
         self.archive_var = tk.StringVar()
-        self.archive_entry = ttk.Entry(file_select_frame, textvariable=self.archive_var, width=40)
-        self.archive_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        entry_frame = tk.Frame(input_container,
+                             bg='white',
+                             relief='solid',
+                             bd=1,
+                             highlightbackground=self.colors['border'])
+        entry_frame.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
-        ttk.Button(file_select_frame, text="浏览", command=self.select_archive).pack(side="right")
+        self.archive_entry = tk.Entry(entry_frame,
+                                    textvariable=self.archive_var,
+                                    font=('Microsoft YaHei UI', 10),
+                                    bg='white',
+                                    fg=self.colors['text_primary'],
+                                    relief='flat',
+                                    bd=0)
+        self.archive_entry.pack(fill="both", expand=True, padx=8, pady=8)
+
+        # 浏览按钮
+        browse_btn = ttk.Button(input_container,
+                              text="📂 浏览",
+                              style="Modern.TButton",
+                              command=self.select_archive)
+        browse_btn.pack(side="right")
+
+        # 拖拽提示
+        self.drag_hint_label = tk.Label(content_frame,
+                                      text="💡 提示：可以直接拖拽压缩包文件到上方输入框",
+                                      font=('Microsoft YaHei UI', 9),
+                                      fg=self.colors['text_secondary'],
+                                      bg=self.colors['surface'])
+        self.drag_hint_label.pack(anchor="w", pady=(0, 8))
+
+        # 文件信息显示
+        self.file_info_label = tk.Label(content_frame,
+                                      text="",
+                                      font=('Microsoft YaHei UI', 10),
+                                      fg=self.colors['success'],
+                                      bg=self.colors['surface'])
+        self.file_info_label.pack(anchor="w")
+
+        # 绑定拖拽事件
+        self.setup_drag_drop_events(entry_frame)
+        self.setup_drag_drop_events(self.archive_entry)
+
+    def setup_keywords_card(self, parent):
+        """设置关键字设置卡片"""
+        content_frame = self.create_card_frame(parent, "关键字设置", "🔍")
+
+        # 说明文字
+        desc_label = tk.Label(content_frame,
+                            text="输入关键字进行文件筛选 (每行一个关键字):",
+                            font=('Microsoft YaHei UI', 10),
+                            fg=self.colors['text_primary'],
+                            bg=self.colors['surface'])
+        desc_label.pack(anchor="w", pady=(0, 10))
 
         # 关键字输入区域
-        keyword_frame = ttk.LabelFrame(scrollable_frame, text="关键字设置", padding="5")
-        keyword_frame.pack(fill="x", pady=(0, 10))
+        text_container = tk.Frame(content_frame, bg=self.colors['surface'])
+        text_container.pack(fill="both", expand=True)
 
-        # 关键字历史
-        history_frame = ttk.Frame(keyword_frame)
-        history_frame.pack(fill="x", pady=(0, 5))
+        # 文本框容器
+        text_frame = tk.Frame(text_container,
+                            bg='white',
+                            relief='solid',
+                            bd=1,
+                            highlightbackground=self.colors['border'])
+        text_frame.pack(fill="both", expand=True)
 
-        ttk.Label(history_frame, text="历史记录:").pack(side="left")
-        self.history_var = tk.StringVar()
-        history_combo = ttk.Combobox(history_frame, textvariable=self.history_var, width=25, state="readonly")
-        history_combo.pack(side="right")
-        history_combo.bind('<<ComboboxSelected>>', self.on_history_selected)
+        # 关键字文本框
+        self.keyword_text = tk.Text(text_frame,
+                                  height=4,
+                                  wrap=tk.WORD,
+                                  font=('Microsoft YaHei UI', 10),
+                                  bg='white',
+                                  fg=self.colors['text_primary'],
+                                  relief='flat',
+                                  bd=0,
+                                  padx=8,
+                                  pady=8)
 
-        # 加载关键字历史
-        history = self.config_manager.get("user_preferences.keywords_history", [])
-        history_combo['values'] = history
-
-        # 多行关键字输入
-        ttk.Label(keyword_frame, text="输入关键字 (每行一个):").pack(anchor="w", pady=(5, 2))
-
-        text_frame = ttk.Frame(keyword_frame)
-        text_frame.pack(fill="x", pady=(0, 5))
-
-        self.keyword_text = tk.Text(text_frame, height=4, wrap=tk.WORD)
+        # 滚动条
         keyword_scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=self.keyword_text.yview)
         self.keyword_text.configure(yscrollcommand=keyword_scrollbar.set)
 
         self.keyword_text.pack(side="left", fill="both", expand=True)
         keyword_scrollbar.pack(side="right", fill="y")
 
-        # 操作模式选择
-        operation_frame = ttk.LabelFrame(scrollable_frame, text="操作模式", padding="5")
-        operation_frame.pack(fill="x", pady=(0, 10))
-
-        self.operation_var = tk.StringVar(value=self.config_manager.get("user_preferences.operation_mode", "move"))
-
-        ttk.Radiobutton(operation_frame, text="移动文件", variable=self.operation_var, value="move").pack(side=tk.LEFT, padx=(0, 10))
-        ttk.Radiobutton(operation_frame, text="复制文件", variable=self.operation_var, value="copy").pack(side=tk.LEFT, padx=(0, 10))
-        ttk.Radiobutton(operation_frame, text="创建链接", variable=self.operation_var, value="link").pack(side=tk.LEFT)
-
-        # 高级过滤器
-        self.advanced_filters = AdvancedFilters(scrollable_frame)
-        self.advanced_filters.frame.pack(fill="x", pady=(0, 10))
-
-        # 文件类型选择器
-        file_type_presets = self.config_manager.get_file_type_presets()
-        self.file_type_selector = FileTypeSelector(scrollable_frame, file_type_presets, self.on_filter_changed)
-        self.file_type_selector.frame.pack(fill="x", pady=(0, 10))
-
-        # 控制按钮
-        button_frame = ttk.Frame(scrollable_frame)
+        # 快速操作按钮
+        button_frame = tk.Frame(content_frame, bg=self.colors['surface'])
         button_frame.pack(fill="x", pady=(10, 0))
 
-        self.preview_button = ttk.Button(button_frame, text="预览匹配文件", command=self.preview_files)
-        self.preview_button.pack(side="left", padx=(0, 5))
-
-        self.start_button = ttk.Button(button_frame, text="开始处理", command=self.start_processing)
-        self.start_button.pack(side="left", padx=(0, 5))
-
-        ttk.Button(button_frame, text="清空", command=self.clear_inputs).pack(side="left")
-
-        # 进度显示
-        progress_frame = ttk.Frame(scrollable_frame)
-        progress_frame.pack(fill="x", pady=(10, 0))
-
-        self.progress_var = tk.StringVar(value="就绪")
-        ttk.Label(progress_frame, textvariable=self.progress_var).pack(anchor="w")
-
-        self.progress_bar = ttk.Progressbar(progress_frame, mode='indeterminate')
-        self.progress_bar.pack(fill="x", pady=(5, 0))
+        # 清空关键字按钮
+        clear_keywords_btn = ttk.Button(button_frame,
+                                      text="🗑️ 清空",
+                                      style="Warning.TButton",
+                                      command=lambda: self.keyword_text.delete(1.0, tk.END))
+        clear_keywords_btn.pack(side="left")
 
         # 绑定Ctrl+Enter快捷键
         self.keyword_text.bind('<Control-Return>', lambda e: self.start_processing())
 
+    def setup_filters_card(self, parent):
+        """设置过滤器卡片"""
+        content_frame = self.create_card_frame(parent, "高级过滤", "⚙️")
+
+        # 操作模式选择
+        mode_label = tk.Label(content_frame,
+                            text="操作模式:",
+                            font=('Microsoft YaHei UI', 10, 'bold'),
+                            fg=self.colors['text_primary'],
+                            bg=self.colors['surface'])
+        mode_label.pack(anchor="w", pady=(0, 8))
+
+        mode_frame = tk.Frame(content_frame, bg=self.colors['surface'])
+        mode_frame.pack(fill="x", pady=(0, 15))
+
+        self.operation_var = tk.StringVar(value=self.config_manager.get("user_preferences.operation_mode", "move"))
+
+        # 操作模式单选按钮
+        move_rb = tk.Radiobutton(mode_frame, text="📁 移动文件",
+                               variable=self.operation_var, value="move",
+                               font=('Microsoft YaHei UI', 10),
+                               fg=self.colors['text_primary'],
+                               bg=self.colors['surface'],
+                               selectcolor=self.colors['primary'])
+        move_rb.pack(side=tk.LEFT, padx=(0, 20))
+
+        copy_rb = tk.Radiobutton(mode_frame, text="📋 复制文件",
+                               variable=self.operation_var, value="copy",
+                               font=('Microsoft YaHei UI', 10),
+                               fg=self.colors['text_primary'],
+                               bg=self.colors['surface'],
+                               selectcolor=self.colors['primary'])
+        copy_rb.pack(side=tk.LEFT, padx=(0, 20))
+
+        link_rb = tk.Radiobutton(mode_frame, text="🔗 创建链接",
+                               variable=self.operation_var, value="link",
+                               font=('Microsoft YaHei UI', 10),
+                               fg=self.colors['text_primary'],
+                               bg=self.colors['surface'],
+                               selectcolor=self.colors['primary'])
+        link_rb.pack(side=tk.LEFT)
+
+        # 高级过滤器
+        self.advanced_filters = AdvancedFilters(content_frame)
+        self.advanced_filters.frame.pack(fill="x", pady=(0, 10))
+
+        # 文件类型选择器
+        file_type_presets = self.config_manager.get_file_type_presets()
+        self.file_type_selector = FileTypeSelector(content_frame, file_type_presets, self.on_filter_changed)
+        self.file_type_selector.frame.pack(fill="x")
+
+    def setup_actions_card(self, parent):
+        """设置操作控制卡片"""
+        content_frame = self.create_card_frame(parent, "处理状态", "📊")
+
+        # 进度显示区域
+        self.setup_progress_area(content_frame)
+
+    def insert_example_keywords(self):
+        """插入示例关键字"""
+        example_keywords = "图片\n文档\n视频\n音频\n压缩包"
+        self.keyword_text.delete(1.0, tk.END)
+        self.keyword_text.insert(1.0, example_keywords)
+
         # 加载用户偏好设置
         self.load_user_preferences()
 
-    def setup_right_panel(self, parent):
-        """设置右侧预览面板"""
-        # 创建Notebook来组织不同的预览功能
-        notebook = ttk.Notebook(parent)
-        notebook.pack(fill="both", expand=True)
+    def setup_file_selection_area(self, parent):
+        """设置集成的文件选择区域"""
+        # 主文件选择框架
+        file_frame = ttk.LabelFrame(parent, text="压缩包选择", padding="10")
+        file_frame.pack(fill="x", pady=(0, 10))
 
-        # 压缩包预览标签页
-        preview_frame = ttk.Frame(notebook)
-        notebook.add(preview_frame, text="压缩包预览")
+        # 文件路径输入区域
+        input_frame = ttk.Frame(file_frame)
+        input_frame.pack(fill="x", pady=(0, 5))
 
-        self.archive_preview = ArchivePreview(preview_frame)
-        self.archive_preview.frame.pack(fill="both", expand=True)
+        ttk.Label(input_frame, text="文件路径:").pack(anchor="w", pady=(0, 5))
 
-        # 操作日志标签页
-        log_frame = ttk.Frame(notebook)
-        notebook.add(log_frame, text="操作日志")
+        path_frame = ttk.Frame(input_frame)
+        path_frame.pack(fill="x")
 
-        # 日志显示区域
-        log_text_frame = ttk.Frame(log_frame)
-        log_text_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        self.archive_var = tk.StringVar()
 
-        self.log_text = tk.Text(log_text_frame, wrap=tk.WORD)
-        log_scrollbar = ttk.Scrollbar(log_text_frame, orient=tk.VERTICAL, command=self.log_text.yview)
-        self.log_text.configure(yscrollcommand=log_scrollbar.set)
+        # 创建支持拖拽的输入框容器
+        entry_container = tk.Frame(path_frame, relief="sunken", bd=1)
+        entry_container.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
-        self.log_text.pack(side="left", fill="both", expand=True)
-        log_scrollbar.pack(side="right", fill="y")
+        self.archive_entry = ttk.Entry(entry_container, textvariable=self.archive_var, font=("TkDefaultFont", 10))
+        self.archive_entry.pack(fill="both", expand=True, padx=1, pady=1)
 
-        # 日志控制按钮
-        log_button_frame = ttk.Frame(log_frame)
-        log_button_frame.pack(fill="x", padx=5, pady=(0, 5))
+        ttk.Button(path_frame, text="浏览", command=self.select_archive).pack(side="right")
 
-        ttk.Button(log_button_frame, text="清空日志", command=self.clear_log).pack(side="left")
-        ttk.Button(log_button_frame, text="保存日志", command=self.save_log).pack(side="left", padx=(5, 0))
+        # 拖拽提示标签（在输入框下方）
+        self.drag_hint_label = ttk.Label(input_frame,
+                                       text="💡 提示：可以直接拖拽压缩包文件到上方输入框",
+                                       font=("TkDefaultFont", 8),
+                                       foreground="gray")
+        self.drag_hint_label.pack(anchor="w", pady=(3, 0))
 
-        # 撤销管理标签页
-        undo_frame = ttk.Frame(notebook)
-        notebook.add(undo_frame, text="撤销管理")
+        # 文件信息显示
+        self.file_info_label = ttk.Label(file_frame, text="", foreground="blue")
+        self.file_info_label.pack(anchor="w", pady=(8, 0))
 
-        self.undo_panel = UndoPanel(undo_frame, self.undo_manager)
-        self.undo_panel.frame.pack(fill="both", expand=True, padx=5, pady=5)
+        # 绑定拖拽事件到输入框
+        self.setup_drag_drop_events(entry_container)
+        self.setup_drag_drop_events(self.archive_entry)
+
+    def setup_drag_drop_events(self, widget):
+        """设置拖拽事件"""
+        def on_drag_enter(event):
+            # 输入框获得焦点时的视觉反馈
+            if hasattr(widget, 'config'):
+                try:
+                    widget.config(relief="solid", highlightbackground="#4CAF50")
+                except:
+                    pass
+            self.drag_hint_label.config(text="📦 释放文件到输入框", foreground="#4CAF50")
+
+        def on_drag_leave(event):
+            # 恢复正常状态
+            if hasattr(widget, 'config'):
+                try:
+                    widget.config(relief="sunken", highlightbackground="")
+                except:
+                    pass
+            self.drag_hint_label.config(text="💡 提示：可以直接拖拽压缩包文件到上方输入框", foreground="gray")
+
+        def on_drop(event):
+            # 恢复正常状态
+            if hasattr(widget, 'config'):
+                try:
+                    widget.config(relief="sunken", highlightbackground="")
+                except:
+                    pass
+            self.drag_hint_label.config(text="💡 提示：可以直接拖拽压缩包文件到上方输入框", foreground="gray")
+
+            # 处理拖拽的文件
+            files = self.root.tk.splitlist(event.data)
+            if files:
+                file_path = files[0]
+                if file_path.lower().endswith(('.zip', '.rar', '.7z')):
+                    self.on_archive_dropped(file_path)
+                else:
+                    messagebox.showwarning("文件类型错误", "请选择压缩包文件 (.zip, .rar, .7z)")
+
+        # 绑定点击事件打开文件选择对话框
+        widget.bind("<Button-1>", lambda e: self.select_archive())
+
+    def setup_progress_area(self, parent):
+        """设置美化的进度显示区域"""
+        # 状态信息区域
+        status_frame = tk.Frame(parent, bg=self.colors['surface'])
+        status_frame.pack(fill="x", pady=(0, 15))
+
+        # 状态图标和文本
+        self.status_icon_label = tk.Label(status_frame,
+                                        text="⚪",
+                                        font=('Microsoft YaHei UI', 16),
+                                        fg=self.colors['text_secondary'],
+                                        bg=self.colors['surface'])
+        self.status_icon_label.pack(side="left", padx=(0, 10))
+
+        status_text_frame = tk.Frame(status_frame, bg=self.colors['surface'])
+        status_text_frame.pack(side="left", fill="x", expand=True)
+
+        self.progress_var = tk.StringVar(value="就绪")
+        self.status_text_label = tk.Label(status_text_frame,
+                                        textvariable=self.progress_var,
+                                        font=('Microsoft YaHei UI', 12, 'bold'),
+                                        fg=self.colors['text_primary'],
+                                        bg=self.colors['surface'])
+        self.status_text_label.pack(anchor="w")
+
+        # 详细信息标签
+        self.detail_info_label = tk.Label(status_text_frame,
+                                        text="",
+                                        font=('Microsoft YaHei UI', 9),
+                                        fg=self.colors['text_secondary'],
+                                        bg=self.colors['surface'])
+        self.detail_info_label.pack(anchor="w", pady=(2, 0))
+
+        # 进度条容器
+        progress_container = tk.Frame(parent, bg=self.colors['surface'])
+        progress_container.pack(fill="x")
+
+        # 主进度条
+        self.progress_bar = ttk.Progressbar(
+            progress_container,
+            mode='indeterminate',
+            style="Custom.Horizontal.TProgressbar"
+        )
+        self.progress_bar.pack(fill="x", pady=(10, 0))
+
+        # 配置进度条样式
+        self.setup_progress_bar_style()
+
+    def setup_progress_bar_style(self):
+        """设置进度条样式"""
+        try:
+            style = ttk.Style()
+
+            # 创建自定义进度条样式
+            style.configure(
+                "Custom.Horizontal.TProgressbar",
+                troughcolor="#e0e0e0",
+                background="#4CAF50",
+                lightcolor="#66BB6A",
+                darkcolor="#388E3C",
+                borderwidth=1,
+                relief="flat"
+            )
+
+            # 设置进度条动画颜色
+            style.map(
+                "Custom.Horizontal.TProgressbar",
+                background=[('active', '#66BB6A')]
+            )
+        except Exception as e:
+            self.logger.debug(f"设置进度条样式失败: {e}")
+
+    def update_progress_status(self, status, icon="⚪", detail=""):
+        """更新进度状态"""
+        self.progress_var.set(status)
+        self.status_icon_label.config(text=icon)
+        self.detail_info_label.config(text=detail)
+
+
+
+    def setup_info_card(self, parent):
+        """设置应用信息卡片"""
+        content_frame = self.create_card_frame(parent, "应用信息", "ℹ️")
+
+        # 应用图标和名称
+        app_header = tk.Frame(content_frame, bg=self.colors['surface'])
+        app_header.pack(fill="x", pady=(0, 15))
+
+        app_icon = tk.Label(app_header,
+                          text="📦",
+                          font=('Microsoft YaHei UI', 24),
+                          bg=self.colors['surface'])
+        app_icon.pack(side="left", padx=(0, 15))
+
+        app_info = tk.Frame(app_header, bg=self.colors['surface'])
+        app_info.pack(side="left", fill="x", expand=True)
+
+        app_name = tk.Label(app_info,
+                          text="FileMover v4.0",
+                          font=('Microsoft YaHei UI', 14, 'bold'),
+                          fg=self.colors['primary'],
+                          bg=self.colors['surface'])
+        app_name.pack(anchor="w")
+
+        app_desc = tk.Label(app_info,
+                          text="现代化文件筛选与移动工具",
+                          font=('Microsoft YaHei UI', 10),
+                          fg=self.colors['text_secondary'],
+                          bg=self.colors['surface'])
+        app_desc.pack(anchor="w")
+
+        # 功能特性
+        features_label = tk.Label(content_frame,
+                                text="✨ 主要功能:",
+                                font=('Microsoft YaHei UI', 10, 'bold'),
+                                fg=self.colors['text_primary'],
+                                bg=self.colors['surface'])
+        features_label.pack(anchor="w", pady=(0, 8))
+
+        features = [
+            "🔍 智能关键字搜索",
+            "📁 多种操作模式",
+            "⚙️ 高级过滤选项",
+            "🎯 精确文件匹配",
+            "🚀 批量文件处理"
+        ]
+
+        for feature in features:
+            feature_label = tk.Label(content_frame,
+                                   text=feature,
+                                   font=('Microsoft YaHei UI', 9),
+                                   fg=self.colors['text_secondary'],
+                                   bg=self.colors['surface'])
+            feature_label.pack(anchor="w", pady=(2, 0))
+
+    def setup_stats_card(self, parent):
+        """设置统计信息卡片"""
+        content_frame = self.create_card_frame(parent, "统计信息", "📈")
+
+        # 统计数据容器
+        stats_container = tk.Frame(content_frame, bg=self.colors['surface'])
+        stats_container.pack(fill="x")
+
+        # 创建统计项
+        self.create_stat_item(stats_container, "处理文件", "0", "📄")
+        self.create_stat_item(stats_container, "匹配成功", "0", "✅")
+        self.create_stat_item(stats_container, "处理时间", "0s", "⏱️")
+
+        # 快速操作
+        quick_actions = tk.Frame(content_frame, bg=self.colors['surface'])
+        quick_actions.pack(fill="x", pady=(15, 0))
+
+        quick_label = tk.Label(quick_actions,
+                             text="🔧 快速操作:",
+                             font=('Microsoft YaHei UI', 10, 'bold'),
+                             fg=self.colors['text_primary'],
+                             bg=self.colors['surface'])
+        quick_label.pack(anchor="w", pady=(0, 8))
+
+        # 快速操作按钮
+        action_buttons = tk.Frame(quick_actions, bg=self.colors['surface'])
+        action_buttons.pack(fill="x")
+
+        help_btn = ttk.Button(action_buttons,
+                            text="❓ 帮助",
+                            style="Modern.TButton",
+                            command=self.show_help)
+        help_btn.pack(fill="x", pady=(0, 5))
+
+        about_btn = ttk.Button(action_buttons,
+                             text="ℹ️ 关于",
+                             style="Modern.TButton",
+                             command=self.show_about)
+        about_btn.pack(fill="x")
+
+    def create_stat_item(self, parent, label, value, icon):
+        """创建统计项"""
+        item_frame = tk.Frame(parent, bg=self.colors['surface'])
+        item_frame.pack(fill="x", pady=(0, 8))
+
+        icon_label = tk.Label(item_frame,
+                            text=icon,
+                            font=('Microsoft YaHei UI', 12),
+                            bg=self.colors['surface'])
+        icon_label.pack(side="left", padx=(0, 8))
+
+        text_frame = tk.Frame(item_frame, bg=self.colors['surface'])
+        text_frame.pack(side="left", fill="x", expand=True)
+
+        label_widget = tk.Label(text_frame,
+                              text=label,
+                              font=('Microsoft YaHei UI', 9),
+                              fg=self.colors['text_secondary'],
+                              bg=self.colors['surface'])
+        label_widget.pack(anchor="w")
+
+        value_widget = tk.Label(text_frame,
+                              text=value,
+                              font=('Microsoft YaHei UI', 11, 'bold'),
+                              fg=self.colors['text_primary'],
+                              bg=self.colors['surface'])
+        value_widget.pack(anchor="w")
+
+        # 保存引用以便更新
+        setattr(self, f"stat_{label.replace(' ', '_').lower()}_value", value_widget)
+
+    def show_help(self):
+        """显示帮助信息"""
+        help_text = """FileMover 使用帮助
+
+🔍 基本使用:
+1. 选择压缩包文件
+2. 输入搜索关键字
+3. 选择操作模式
+4. 点击预览或开始处理
+
+⚙️ 高级功能:
+• 正则表达式搜索
+• 文件类型过滤
+• 大小和日期过滤
+• 批量关键字处理
+
+🚀 快捷键:
+• Ctrl+Enter: 开始处理
+• F5: 刷新界面
+• Ctrl+L: 清空输入"""
+
+        messagebox.showinfo("使用帮助", help_text)
+
+    def show_about(self):
+        """显示关于信息"""
+        about_text = """FileMover v4.0
+
+📦 现代化文件筛选与移动工具
+
+✨ 特性:
+• 智能文件搜索和分类
+• 现代化用户界面
+• 多种操作模式支持
+• 高级过滤功能
+
+👨‍💻 开发者: @m6773
+📅 版本: 4.0.0
+🏠 项目地址: https://gitee.com/m6773/FileMover
+
+© 2024 FileMover - 专业文件处理工具"""
+
+        messagebox.showinfo("关于 FileMover", about_text)
+
+    def open_settings(self):
+        """打开设置对话框"""
+        messagebox.showinfo("设置", "设置功能正在开发中...")
 
     def load_user_preferences(self):
         """加载用户偏好设置"""
@@ -328,12 +958,7 @@ class FileFilterApp:
         except Exception as e:
             self.logger.error(f"加载用户偏好失败: {e}")
 
-    def on_history_selected(self, event):
-        """历史记录选择事件"""
-        selected = self.history_var.get()
-        if selected:
-            self.keyword_text.delete(1.0, tk.END)
-            self.keyword_text.insert(1.0, selected)
+
 
     def on_filter_changed(self):
         """过滤器改变事件"""
@@ -343,16 +968,35 @@ class FileFilterApp:
     def on_archive_dropped(self, file_path: str):
         """处理拖拽的压缩包文件"""
         self.archive_var.set(file_path)
-        self.drag_drop_frame.set_file(file_path)
-        self.archive_preview.set_archive(file_path)
-        self.log_message(f"通过拖拽选择了压缩包: {os.path.basename(file_path)}")
+
+        # 更新文件信息显示
+        file_name = os.path.basename(file_path)
+        file_size = self.format_file_size(os.path.getsize(file_path))
+        self.file_info_label.config(text=f"✅ {file_name} ({file_size})")
+
+        # 更新提示信息
+        self.drag_hint_label.config(text=f"📦 已选择: {file_name}", foreground="#4CAF50")
+
+        self.log_message(f"通过拖拽选择了压缩包: {file_name}")
+
+    def format_file_size(self, size_bytes):
+        """格式化文件大小"""
+        if size_bytes == 0:
+            return "0 B"
+        size_names = ["B", "KB", "MB", "GB"]
+        i = 0
+        while size_bytes >= 1024 and i < len(size_names) - 1:
+            size_bytes /= 1024.0
+            i += 1
+        return f"{size_bytes:.1f} {size_names[i]}"
 
     def clear_log(self):
-        """清空日志"""
-        self.log_text.delete(1.0, tk.END)
+        """清空日志 - 已简化"""
+        if hasattr(self, 'log_text'):
+            self.log_text.delete(1.0, tk.END)
 
     def save_log(self):
-        """保存日志到文件"""
+        """保存日志到文件 - 已简化"""
         try:
             from tkinter import filedialog
             filename = filedialog.asksaveasfilename(
@@ -360,18 +1004,22 @@ class FileFilterApp:
                 defaultextension=".txt",
                 filetypes=[("文本文件", "*.txt"), ("所有文件", "*.*")]
             )
-            if filename:
+            if filename and hasattr(self, 'log_text'):
                 with open(filename, 'w', encoding='utf-8') as f:
                     f.write(self.log_text.get(1.0, tk.END))
-                self.log_message(f"日志已保存到: {filename}")
                 messagebox.showinfo("保存成功", f"日志已保存到:\n{filename}")
         except Exception as e:
             messagebox.showerror("保存失败", f"保存日志失败: {str(e)}")
 
     def select_archive(self):
         """选择压缩包"""
+        # 获取上次使用的目录
+        last_directory = self.config_manager.get("user_preferences.ui_settings.last_archive_directory", "")
+        initial_dir = last_directory if last_directory and os.path.exists(last_directory) else None
+
         archive_path = filedialog.askopenfilename(
             title="选择压缩包",
+            initialdir=initial_dir,
             filetypes=[
                 ("压缩包文件", "*.zip;*.rar;*.7z"),
                 ("ZIP文件", "*.zip"),
@@ -381,6 +1029,10 @@ class FileFilterApp:
             ]
         )
         if archive_path:
+            # 保存选择的目录到配置
+            archive_directory = os.path.dirname(archive_path)
+            self.config_manager.set("user_preferences.ui_settings.last_archive_directory", archive_directory)
+
             # 检查是否是新的压缩包
             old_archive = self.archive_var.get()
             if old_archive and old_archive != archive_path:
@@ -393,20 +1045,26 @@ class FileFilterApp:
                     self.log_message(f"自动清理警告: {e}", "WARNING")
 
             self.archive_var.set(archive_path)
-            self.drag_drop_frame.set_file(archive_path)
-            self.archive_preview.set_archive(archive_path)
-            self.log_message(f"已选择压缩包: {os.path.basename(archive_path)}")
+
+            # 更新文件信息显示
+            file_name = os.path.basename(archive_path)
+            file_size = self.format_file_size(os.path.getsize(archive_path))
+            self.file_info_label.config(text=f"✅ {file_name} ({file_size})")
+
+            # 更新提示信息
+            self.drag_hint_label.config(text=f"📦 已选择: {file_name}", foreground="#4CAF50")
+
+            self.log_message(f"已选择压缩包: {file_name}")
 
     def clear_inputs(self):
         """清空输入"""
         self.archive_var.set("")
         self.keyword_text.delete(1.0, tk.END)
-        self.log_text.delete(1.0, tk.END)
-        self.progress_var.set("就绪")
+        self.update_progress_status("就绪", "⚪", "")
 
         # 清理界面状态
-        self.drag_drop_frame.set_file("")
-        self.archive_preview.set_archive("")
+        self.file_info_label.config(text="")
+        self.drag_hint_label.config(text="💡 提示：可以直接拖拽压缩包文件到上方输入框", foreground="gray")
 
         # 清理临时目录
         if self.temp_extract_dir:
@@ -463,13 +1121,13 @@ class FileFilterApp:
         return True
 
     def log_message(self, message, level="INFO"):
-        """添加日志消息"""
-        # 在GUI中显示
-        self.log_text.insert(tk.END, f"{message}\n")
-        self.log_text.see(tk.END)
-        self.root.update_idletasks()
+        """添加日志消息 - 仅记录到文件和内部日志"""
+        # 记录到内部日志文本框（隐藏）
+        if hasattr(self, 'log_text'):
+            self.log_text.insert(tk.END, f"{message}\n")
+            self.log_text.see(tk.END)
 
-        # 同时记录到日志文件
+        # 记录到日志文件
         if level == "ERROR":
             self.logger.error(message)
         elif level == "WARNING":
@@ -488,7 +1146,7 @@ class FileFilterApp:
         keywords = self.get_keywords()
 
         try:
-            self.progress_var.set("正在预览...")
+            self.update_progress_status("正在预览...", "🔍", "分析压缩包内容")
             self.progress_bar.start()
 
             # 在后台线程中执行预览
@@ -498,7 +1156,7 @@ class FileFilterApp:
 
         except Exception as e:
             self.progress_bar.stop()
-            self.progress_var.set("预览失败")
+            self.update_progress_status("预览失败", "❌", f"错误: {str(e)}")
             messagebox.showerror("错误", f"预览失败: {str(e)}")
 
     def _preview_files_thread(self, archive_path, keywords):
@@ -517,12 +1175,12 @@ class FileFilterApp:
         self.progress_bar.stop()
 
         if error:
-            self.progress_var.set("预览失败")
+            self.update_progress_status("预览失败", "❌", f"错误: {error}")
             self.log_message(f"预览失败: {error}", "ERROR")
             messagebox.showerror("预览失败", f"预览失败: {error}")
         else:
             total_count = matched_count + unmatched_count
-            self.progress_var.set("预览完成")
+            self.update_progress_status("预览完成", "✅", f"总计 {total_count} 个文件，命中 {matched_count} 个")
             self.log_message(f"预览结果: 总文件 {total_count} 个，命中 {matched_count} 个，未命中 {unmatched_count} 个")
             messagebox.showinfo("预览结果",
                                f"预览完成！\n\n"
@@ -570,7 +1228,7 @@ class FileFilterApp:
         # 在新线程中执行处理
         self.start_button.config(state='disabled')
         self.progress_bar.start()
-        self.progress_var.set("正在处理...")
+        self.update_progress_status("正在处理...", "⚙️", "解压并分类文件")
 
         thread = threading.Thread(target=self.process_files, args=(archive_path, keywords, filters, operation))
         thread.daemon = True
@@ -589,7 +1247,7 @@ class FileFilterApp:
                 self.log_message(f"文件类型过滤: {', '.join(filters['file_types'])}")
 
             matched_files, unmatched_files, matched_dir, unmatched_dir = find_and_move_files_from_archive(
-                archive_path, keywords, filters, operation, self.undo_manager, self.password_manager
+                archive_path, keywords, filters, operation, self.undo_manager, self.password_manager, self.config_manager
             )
 
             # 在主线程中更新UI
@@ -604,13 +1262,13 @@ class FileFilterApp:
         self.start_button.config(state='normal')
 
         if error:
-            self.progress_var.set("处理失败")
+            self.update_progress_status("处理失败", "❌", f"错误: {error}")
             self.log_message(f"错误: {error}", "ERROR")
             messagebox.showerror("处理失败", f"操作失败: {error}")
         else:
             total_files = len(matched_files) + len(unmatched_files)
             operation_text = {"move": "移动", "copy": "复制", "link": "链接"}[operation]
-            self.progress_var.set(f"处理完成 - 总计 {total_files} 个文件")
+            self.update_progress_status(f"处理完成", "🎉", f"总计 {total_files} 个文件已{operation_text}")
 
             # 记录详细结果
             self.log_message(f"文件处理完成 ({operation_text}):")
@@ -639,9 +1297,111 @@ class FileFilterApp:
 
             messagebox.showinfo("处理完成", result_message)
 
-            # 刷新撤销面板
-            if hasattr(self, 'undo_panel'):
-                self.undo_panel.refresh_operations()
+            # 自动打开extracted_files文件夹
+            auto_open = self.config_manager.get("user_preferences.ui_settings.auto_open_result_folder", True)
+            if auto_open and os.path.exists(self.extracted_dir):
+                from utils import open_folder_in_explorer
+                if open_folder_in_explorer(self.extracted_dir):
+                    self.log_message(f"已自动打开结果文件夹: {self.extracted_dir}")
+                else:
+                    self.log_message("自动打开文件夹失败", "WARNING")
+
+            # 撤销管理功能已移除
+
+    def open_settings(self):
+        """打开设置对话框"""
+        settings_window = tk.Toplevel(self.root)
+        settings_window.title("设置")
+        settings_window.geometry("400x300")
+        settings_window.resizable(False, False)
+
+        # 使设置窗口居中
+        settings_window.transient(self.root)
+        settings_window.grab_set()
+
+        # 创建设置界面
+        main_frame = ttk.Frame(settings_window, padding="10")
+        main_frame.pack(fill="both", expand=True)
+
+        # extracted_files文件夹位置设置
+        location_frame = ttk.LabelFrame(main_frame, text="extracted_files文件夹位置", padding="5")
+        location_frame.pack(fill="x", pady=(0, 10))
+
+        location_var = tk.StringVar()
+        current_location = self.config_manager.get("user_preferences.ui_settings.extracted_files_location", "current")
+        location_var.set(current_location)
+
+        ttk.Radiobutton(location_frame, text="当前程序目录", variable=location_var, value="current").pack(anchor="w")
+        ttk.Radiobutton(location_frame, text="桌面", variable=location_var, value="desktop").pack(anchor="w")
+
+        # 自动打开结果文件夹设置
+        auto_open_frame = ttk.LabelFrame(main_frame, text="处理完成后", padding="5")
+        auto_open_frame.pack(fill="x", pady=(0, 10))
+
+        auto_open_var = tk.BooleanVar()
+        auto_open_var.set(self.config_manager.get("user_preferences.ui_settings.auto_open_result_folder", True))
+
+        ttk.Checkbutton(auto_open_frame, text="自动打开extracted_files文件夹", variable=auto_open_var).pack(anchor="w")
+
+        # 记忆目录设置
+        remember_frame = ttk.LabelFrame(main_frame, text="文件选择", padding="5")
+        remember_frame.pack(fill="x", pady=(0, 10))
+
+        remember_var = tk.BooleanVar()
+        remember_var.set(self.config_manager.get("user_preferences.ui_settings.remember_last_archive", True))
+
+        ttk.Checkbutton(remember_frame, text="记忆上次选择压缩包的目录", variable=remember_var).pack(anchor="w")
+
+        # 按钮区域
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill="x", pady=(10, 0))
+
+        def save_settings():
+            # 保存设置
+            self.config_manager.set("user_preferences.ui_settings.extracted_files_location", location_var.get())
+            self.config_manager.set("user_preferences.ui_settings.auto_open_result_folder", auto_open_var.get())
+            self.config_manager.set("user_preferences.ui_settings.remember_last_archive", remember_var.get())
+
+            # 如果位置发生变化，重新初始化目录
+            if location_var.get() != current_location:
+                try:
+                    self.extracted_dir, self.matched_dir, self.unmatched_dir = initialize_project_directories(location_var.get())
+                    self.log_message(f"extracted_files目录位置已更改为: {'桌面' if location_var.get() == 'desktop' else '当前程序目录'}")
+                except Exception as e:
+                    self.log_message(f"更改目录位置失败: {e}", "ERROR")
+                    messagebox.showerror("错误", f"更改目录位置失败: {e}")
+                    return
+
+            self.config_manager.save_config()
+            self.log_message("设置已保存")
+            messagebox.showinfo("设置", "设置已保存！")
+            settings_window.destroy()
+
+        def cancel_settings():
+            settings_window.destroy()
+
+        ttk.Button(button_frame, text="保存", command=save_settings).pack(side="right", padx=(5, 0))
+        ttk.Button(button_frame, text="取消", command=cancel_settings).pack(side="right")
+
+    def check_format_support(self):
+        """检查压缩格式支持情况"""
+        from utils import get_supported_formats, get_format_requirements
+
+        supported = get_supported_formats()
+        requirements = get_format_requirements()
+
+        missing_formats = []
+        for format_name, is_supported in supported.items():
+            if not is_supported:
+                missing_formats.append(f"{format_name}: {requirements[format_name]}")
+
+        if missing_formats:
+            self.logger.warning(f"部分压缩格式不支持: {', '.join([f.split(':')[0] for f in missing_formats])}")
+            # 可以选择是否显示提示对话框
+            # messagebox.showwarning("格式支持提示",
+            #     f"以下格式需要安装额外依赖:\n\n" + "\n".join(missing_formats))
+        else:
+            self.logger.info("所有压缩格式都已支持")
 
     def __del__(self):
         """析构函数，清理临时目录"""

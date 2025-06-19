@@ -2,8 +2,6 @@ import os
 import shutil
 import time
 import zipfile
-import rarfile
-import py7zr
 import tempfile
 import logging
 import re
@@ -11,6 +9,21 @@ from logging.handlers import RotatingFileHandler
 from typing import List, Tuple, Optional, Dict, Any
 from datetime import datetime
 from pathlib import Path
+
+# 可选依赖导入
+try:
+    import rarfile
+    RARFILE_AVAILABLE = True
+except ImportError:
+    RARFILE_AVAILABLE = False
+    rarfile = None
+
+try:
+    import py7zr
+    PY7ZR_AVAILABLE = True
+except ImportError:
+    PY7ZR_AVAILABLE = False
+    py7zr = None
 
 
 def setup_logging() -> logging.Logger:
@@ -62,22 +75,56 @@ def setup_logging() -> logging.Logger:
     return logger
 
 
-def initialize_project_directories() -> Tuple[str, str, str]:
+def get_desktop_path() -> str:
+    """获取桌面路径"""
+    import platform
+    system = platform.system()
+
+    if system == "Windows":
+        import winreg
+        try:
+            # 尝试从注册表获取桌面路径
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                               r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
+            desktop_path, _ = winreg.QueryValueEx(key, "Desktop")
+            winreg.CloseKey(key)
+            return desktop_path
+        except:
+            # 如果失败，使用默认路径
+            return os.path.join(os.path.expanduser("~"), "Desktop")
+    elif system == "Darwin":  # macOS
+        return os.path.join(os.path.expanduser("~"), "Desktop")
+    else:  # Linux and others
+        return os.path.join(os.path.expanduser("~"), "Desktop")
+
+
+def initialize_project_directories(location: str = "current") -> Tuple[str, str, str]:
     """
     初始化项目目录结构
+
+    Args:
+        location: 目录位置，"current" 表示当前目录，"desktop" 表示桌面
 
     Returns:
         Tuple[str, str, str]: (解压目录, 命中文件目录, 未命中文件目录)
     """
     logger = logging.getLogger("FileFilterTool")
 
-    # 项目根目录
-    project_root = os.getcwd()
+    # 根据配置选择基础目录
+    if location == "desktop":
+        base_dir = get_desktop_path()
+        logger.info(f"使用桌面作为基础目录: {base_dir}")
+    else:
+        base_dir = os.getcwd()
+        logger.info(f"使用当前目录作为基础目录: {base_dir}")
 
     # 创建主要目录
-    extracted_dir = os.path.join(project_root, "extracted_files")
+    extracted_dir = os.path.join(base_dir, "extracted_files")
     matched_dir = os.path.join(extracted_dir, "命中文件")
     unmatched_dir = os.path.join(extracted_dir, "未命中文件")
+
+    # temp_extract目录始终在当前工作目录下
+    project_root = os.getcwd()
     temp_extract_dir = os.path.join(project_root, "temp_extract")
 
     # 创建目录
@@ -91,6 +138,52 @@ def initialize_project_directories() -> Tuple[str, str, str]:
             raise
 
     return extracted_dir, matched_dir, unmatched_dir
+
+
+def open_folder_in_explorer(folder_path: str) -> bool:
+    """
+    在文件管理器中打开文件夹
+
+    Args:
+        folder_path: 要打开的文件夹路径
+
+    Returns:
+        bool: 是否成功打开
+    """
+    import platform
+    import subprocess
+
+    logger = logging.getLogger("FileFilterTool")
+
+    if not os.path.exists(folder_path):
+        logger.error(f"文件夹不存在: {folder_path}")
+        return False
+
+    try:
+        system = platform.system()
+
+        if system == "Windows":
+            # Windows使用explorer命令
+            subprocess.run(['explorer', folder_path], check=True)
+        elif system == "Darwin":  # macOS
+            # macOS使用open命令
+            subprocess.run(['open', folder_path], check=True)
+        else:  # Linux和其他系统
+            # Linux使用xdg-open命令
+            subprocess.run(['xdg-open', folder_path], check=True)
+
+        logger.info(f"已在文件管理器中打开文件夹: {folder_path}")
+        return True
+
+    except subprocess.CalledProcessError as e:
+        logger.error(f"打开文件夹失败: {e}")
+        return False
+    except FileNotFoundError:
+        logger.error(f"找不到文件管理器命令")
+        return False
+    except Exception as e:
+        logger.error(f"打开文件夹时发生未知错误: {e}")
+        return False
 
 
 def extract_archive(archive_path: str, password: Optional[str] = None) -> str:
@@ -138,12 +231,20 @@ def extract_archive(archive_path: str, password: Optional[str] = None) -> str:
                 zip_ref.extractall(temp_dir)
                 logger.info(f"ZIP文件解压完成，文件数量: {len(zip_ref.namelist())}")
         elif ext == '.rar':
+            if not RARFILE_AVAILABLE:
+                error_msg = "RAR文件支持需要安装rarfile库: pip install rarfile"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
             with rarfile.RarFile(archive_path, 'r') as rar_ref:
                 if password:
                     rar_ref.setpassword(password)
                 rar_ref.extractall(temp_dir)
                 logger.info(f"RAR文件解压完成，文件数量: {len(rar_ref.namelist())}")
         elif ext == '.7z':
+            if not PY7ZR_AVAILABLE:
+                error_msg = "7Z文件支持需要安装py7zr库: pip install py7zr"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
             with py7zr.SevenZipFile(archive_path, mode='r', password=password) as archive:
                 archive.extractall(temp_dir)
                 logger.info("7Z文件解压完成")
@@ -178,9 +279,43 @@ def validate_archive(archive_path: str) -> bool:
         return False
 
     _, ext = os.path.splitext(archive_path.lower())
-    supported_formats = ['.zip', '.rar', '.7z']
+
+    # 动态构建支持的格式列表
+    supported_formats = ['.zip']  # ZIP总是支持的
+    if RARFILE_AVAILABLE:
+        supported_formats.append('.rar')
+    if PY7ZR_AVAILABLE:
+        supported_formats.append('.7z')
 
     return ext in supported_formats and os.access(archive_path, os.R_OK)
+
+
+def get_supported_formats() -> Dict[str, bool]:
+    """
+    获取支持的压缩格式信息
+
+    Returns:
+        Dict[str, bool]: 格式名称和是否支持的映射
+    """
+    return {
+        'ZIP': True,  # 总是支持
+        'RAR': RARFILE_AVAILABLE,
+        '7Z': PY7ZR_AVAILABLE
+    }
+
+
+def get_format_requirements() -> Dict[str, str]:
+    """
+    获取各格式的依赖要求
+
+    Returns:
+        Dict[str, str]: 格式名称和安装命令的映射
+    """
+    return {
+        'ZIP': '内置支持',
+        'RAR': 'pip install rarfile',
+        '7Z': 'pip install py7zr'
+    }
 
 
 def match_keywords(filename: str, keywords: List[str], use_regex: bool = False) -> bool:
@@ -435,7 +570,8 @@ def classify_and_move_files(source_dir: str, keywords: List[str], matched_dir: s
 
 def find_and_move_files_from_archive(archive_path: str, keywords: List[str],
                                     filters: Optional[Dict[str, Any]] = None,
-                                    operation: str = "move", undo_manager=None, password_manager=None) -> Tuple[List[str], List[str], str, str]:
+                                    operation: str = "move", undo_manager=None, password_manager=None,
+                                    config_manager=None) -> Tuple[List[str], List[str], str, str]:
     """
     从压缩包中查找并分类文件
 
@@ -446,6 +582,7 @@ def find_and_move_files_from_archive(archive_path: str, keywords: List[str],
         operation: 操作类型 ("move", "copy", "link")
         undo_manager: 撤销管理器（可选）
         password_manager: 密码管理器（可选）
+        config_manager: 配置管理器（可选）
 
     Returns:
         Tuple[List[str], List[str], str, str]: (命中文件列表, 未命中文件列表, 命中目录, 未命中目录)
@@ -466,8 +603,13 @@ def find_and_move_files_from_archive(archive_path: str, keywords: List[str],
         logger.error(error_msg)
         raise ValueError(error_msg)
 
+    # 获取extracted_files目录位置配置
+    location = "current"  # 默认值
+    if config_manager:
+        location = config_manager.get("user_preferences.ui_settings.extracted_files_location", "current")
+
     # 初始化项目目录
-    extracted_dir, matched_dir, unmatched_dir = initialize_project_directories()
+    extracted_dir, matched_dir, unmatched_dir = initialize_project_directories(location)
 
     # 自动清理extracted_files目录
     logger.info("检测到新压缩包，开始自动清理...")
