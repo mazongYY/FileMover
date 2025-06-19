@@ -190,10 +190,18 @@ class RegexValidator:
 class AdvancedFilters:
     """高级过滤器"""
 
-    def __init__(self, parent):
+    def __init__(self, parent, colors=None):
         self.parent = parent
+        self.colors = colors or self.get_default_colors()
         self.frame = ttk.LabelFrame(parent, text="高级过滤器", padding="5")
         self.setup_ui()
+
+    def get_default_colors(self):
+        """获取默认颜色方案"""
+        return {
+            'text_secondary': '#757575',
+            'primary': '#1976D2'
+        }
 
     def setup_ui(self):
         """设置界面"""
@@ -211,7 +219,7 @@ class AdvancedFilters:
         self.regex_help = ttk.Label(
             self.frame,
             text="提示: 使用 .* 匹配任意字符，\\d+ 匹配数字",
-            foreground="gray",
+            foreground=self.colors['text_secondary'],
             font=("TkDefaultFont", 8)
         )
         self.regex_help.grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(0, 10))
@@ -235,7 +243,7 @@ class AdvancedFilters:
         self.max_size_entry = ttk.Entry(size_frame, width=10)
         self.max_size_entry.grid(row=1, column=3, padx=(0, 5))
 
-        ttk.Label(size_frame, text="(单位: KB)", foreground="gray").grid(row=2, column=0, columnspan=4, sticky=tk.W)
+        ttk.Label(size_frame, text="(单位: KB)", foreground=self.colors['text_secondary']).grid(row=2, column=0, columnspan=4, sticky=tk.W)
 
         # 文件时间过滤
         date_frame = ttk.LabelFrame(self.frame, text="文件时间过滤", padding="3")
@@ -261,7 +269,7 @@ class AdvancedFilters:
         self.end_date_entry.grid(row=1, column=3, padx=(0, 5))
         self.end_date_entry.insert(0, datetime.now().strftime("%Y-%m-%d"))
 
-        ttk.Label(date_frame, text="(格式: YYYY-MM-DD)", foreground="gray").grid(row=2, column=0, columnspan=4, sticky=tk.W)
+        ttk.Label(date_frame, text="(格式: YYYY-MM-DD)", foreground=self.colors['text_secondary']).grid(row=2, column=0, columnspan=4, sticky=tk.W)
 
         # 初始状态
         self.on_regex_changed()
@@ -270,9 +278,9 @@ class AdvancedFilters:
     def on_regex_changed(self):
         """正则表达式选项改变"""
         if self.regex_var.get():
-            self.regex_help.config(foreground="blue")
+            self.regex_help.config(foreground=self.colors['primary'])
         else:
-            self.regex_help.config(foreground="gray")
+            self.regex_help.config(foreground=self.colors['text_secondary'])
 
     def on_date_filter_changed(self):
         """日期过滤器选项改变"""

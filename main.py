@@ -11,6 +11,7 @@ from config_manager import ConfigManager
 from advanced_gui import FileTypeSelector, AdvancedFilters
 from undo_manager import UndoManager
 from password_manager import PasswordManager
+from icon_manager import icon_manager
 
 
 class FileFilterApp:
@@ -70,34 +71,65 @@ class FileFilterApp:
         # 检测系统主题
         self.is_dark_theme = self.detect_system_theme()
 
-        # 定义简化的配色方案 - 浅色/深色
+        # 定义Material Design配色方案
         if self.is_dark_theme:
             self.colors = {
-                'primary': '#0078D4',      # 主色调
-                'success': '#107C10',      # 成功色
-                'warning': '#FF8C00',      # 警告色
-                'error': '#D13438',        # 错误色
-                'background': '#202020',   # 深色背景
-                'surface': '#2D2D2D',      # 深色表面
-                'text_primary': '#FFFFFF', # 白色文字
-                'text_secondary': '#CCCCCC', # 浅灰文字
-                'border': '#404040',       # 深色边框
+                # Material Design Dark Theme
+                'primary': '#1976D2',      # Material Blue 700
+                'primary_variant': '#1565C0',  # Material Blue 800
+                'secondary': '#03DAC6',    # Material Teal 200
+                'success': '#4CAF50',      # Material Green 500
+                'warning': '#FF9800',      # Material Orange 500
+                'error': '#F44336',        # Material Red 500
+                'background': '#121212',   # Material Dark Background
+                'surface': '#1E1E1E',      # Material Dark Surface
+                'surface_variant': '#2D2D2D',  # 表面变体
+                'text_primary': '#FFFFFF', # 主要文字
+                'text_secondary': '#B3B3B3', # 次要文字
+                'text_disabled': '#666666', # 禁用文字
+                'border': '#333333',       # 边框色
+                'divider': '#2D2D2D',      # 分割线
+                'input_bg': '#2D2D2D',     # 输入框背景
+                'input_border': '#404040', # 输入框边框
+                'hover': '#333333',        # 悬停色
+                'pressed': '#404040',      # 按下色
+                'selected': '#1976D2',     # 选中色
             }
         else:
             self.colors = {
-                'primary': '#0078D4',      # 主色调
-                'success': '#107C10',      # 成功色
-                'warning': '#FF8C00',      # 警告色
-                'error': '#D13438',        # 错误色
-                'background': '#F5F5F5',   # 浅色背景
-                'surface': '#FFFFFF',      # 白色表面
-                'text_primary': '#000000', # 黑色文字
-                'text_secondary': '#666666', # 深灰文字
-                'border': '#D0D0D0',       # 浅色边框
+                # Material Design Light Theme
+                'primary': '#1976D2',      # Material Blue 700
+                'primary_variant': '#1565C0',  # Material Blue 800
+                'secondary': '#03DAC6',    # Material Teal 200
+                'success': '#4CAF50',      # Material Green 500
+                'warning': '#FF9800',      # Material Orange 500
+                'error': '#F44336',        # Material Red 500
+                'background': '#FAFAFA',   # Material Light Background
+                'surface': '#FFFFFF',      # Material Light Surface
+                'surface_variant': '#F5F5F5',  # 表面变体
+                'text_primary': '#212121', # 主要文字
+                'text_secondary': '#757575', # 次要文字
+                'text_disabled': '#BDBDBD', # 禁用文字
+                'border': '#E0E0E0',       # 边框色
+                'divider': '#E0E0E0',      # 分割线
+                'input_bg': '#FFFFFF',     # 输入框背景
+                'input_border': '#CCCCCC', # 输入框边框
+                'hover': '#F5F5F5',        # 悬停色
+                'pressed': '#EEEEEE',      # 按下色
+                'selected': '#1976D2',     # 选中色
             }
 
     def detect_system_theme(self):
         """检测系统主题"""
+        # 首先检查用户配置
+        user_theme = self.config_manager.get("user_preferences.ui_settings.theme_mode", "auto")
+
+        if user_theme == "dark":
+            return True
+        elif user_theme == "light":
+            return False
+
+        # 自动检测系统主题
         try:
             import winreg
             registry = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
@@ -108,63 +140,197 @@ class FileFilterApp:
         except:
             return False  # 默认浅色主题
 
+    def toggle_theme(self):
+        """切换主题"""
+        current_mode = self.config_manager.get("user_preferences.ui_settings.theme_mode", "auto")
+
+        if current_mode == "auto":
+            # 从自动切换到深色
+            new_mode = "dark"
+        elif current_mode == "dark":
+            # 从深色切换到浅色
+            new_mode = "light"
+        else:
+            # 从浅色切换到自动
+            new_mode = "auto"
+
+        self.config_manager.set("user_preferences.ui_settings.theme_mode", new_mode)
+        self.config_manager.save_config()
+
+        # 重新初始化主题
+        self.setup_modern_styles()
+        self.refresh_ui_theme()
+
+        # 显示提示
+        theme_names = {"auto": "自动", "dark": "深色", "light": "浅色"}
+        messagebox.showinfo("主题切换", f"已切换到{theme_names[new_mode]}主题")
+
+    def refresh_ui_theme(self):
+        """刷新UI主题"""
+        # 重新配置按钮样式
+        self.setup_button_styles()
+
+        # 更新根窗口背景
+        self.root.configure(bg=self.colors['background'])
+
+        # 递归更新所有Frame组件
+        self.update_widget_theme(self.root)
+
+    def update_widget_theme(self, widget):
+        """递归更新组件主题"""
+        try:
+            widget_class = widget.winfo_class()
+
+            # 更新Frame组件
+            if widget_class in ['Frame', 'Toplevel']:
+                widget.configure(bg=self.colors['background'])
+
+            # 更新Label组件
+            elif widget_class == 'Label':
+                # 根据当前前景色判断是主要还是次要文字
+                current_fg = widget.cget('fg')
+                if current_fg in ['gray', 'grey', '#666666', '#757575', '#B3B3B3']:
+                    widget.configure(fg=self.colors['text_secondary'], bg=self.colors['surface'])
+                else:
+                    widget.configure(fg=self.colors['text_primary'], bg=self.colors['surface'])
+
+            # 更新Entry组件
+            elif widget_class == 'Entry':
+                widget.configure(
+                    bg=self.colors['input_bg'],
+                    fg=self.colors['text_primary'],
+                    insertbackground=self.colors['text_primary'],
+                    selectbackground=self.colors['selected'],
+                    selectforeground='white'
+                )
+
+            # 更新Text组件
+            elif widget_class == 'Text':
+                widget.configure(
+                    bg=self.colors['input_bg'],
+                    fg=self.colors['text_primary'],
+                    insertbackground=self.colors['text_primary'],
+                    selectbackground=self.colors['selected'],
+                    selectforeground='white'
+                )
+
+            # 递归处理子组件
+            for child in widget.winfo_children():
+                self.update_widget_theme(child)
+
+        except Exception as e:
+            # 忽略无法配置的组件
+            pass
+
     def setup_button_styles(self):
-        """配置按钮样式"""
-        # 配置现代化按钮样式
+        """配置Material Design按钮样式"""
+        # Material Design Primary Button
         self.style.configure(
-            "Modern.TButton",
+            "Material.TButton",
             background=self.colors['primary'],
-            foreground='#FFFFFF',  # 纯白色文字，更清晰
+            foreground='#FFFFFF',
             borderwidth=0,
             focuscolor='none',
-            padding=(20, 10),
-            font=('Microsoft YaHei UI', 10, 'bold')  # 增大字体并加粗
+            padding=(24, 12),
+            font=('Microsoft YaHei UI', 10, 'normal'),
+            relief='flat'
         )
 
         self.style.map(
-            "Modern.TButton",
-            background=[('active', '#005A9E'),  # 悬停时更深的蓝色
-                       ('pressed', '#004578')],  # 按下时最深的蓝色
-            foreground=[('active', '#FFFFFF'),
-                       ('pressed', '#FFFFFF')]
+            "Material.TButton",
+            background=[
+                ('active', self.colors['primary_variant']),
+                ('pressed', self.colors['primary_variant']),
+                ('disabled', self.colors['text_disabled'])
+            ],
+            foreground=[
+                ('active', '#FFFFFF'),
+                ('pressed', '#FFFFFF'),
+                ('disabled', '#FFFFFF')
+            ]
         )
 
-        # 配置成功按钮样式
+        # Material Design Success Button
         self.style.configure(
-            "Success.TButton",
+            "MaterialSuccess.TButton",
             background=self.colors['success'],
-            foreground='#FFFFFF',  # 纯白色文字
+            foreground='#FFFFFF',
+            borderwidth=0,
+            focuscolor='none',
+            padding=(24, 12),
+            font=('Microsoft YaHei UI', 10, 'normal'),
+            relief='flat'
+        )
+
+        self.style.map(
+            "MaterialSuccess.TButton",
+            background=[
+                ('active', '#45A049'),  # 深绿色悬停
+                ('pressed', '#3D8B40'),  # 更深绿色按下
+                ('disabled', self.colors['text_disabled'])
+            ],
+            foreground=[
+                ('active', '#FFFFFF'),
+                ('pressed', '#FFFFFF'),
+                ('disabled', '#FFFFFF')
+            ]
+        )
+
+        # Material Design Warning Button
+        self.style.configure(
+            "MaterialWarning.TButton",
+            background=self.colors['warning'],
+            foreground='#FFFFFF',
             borderwidth=0,
             focuscolor='none',
             padding=(20, 10),
-            font=('Microsoft YaHei UI', 10, 'bold')  # 增大字体并加粗
+            font=('Microsoft YaHei UI', 10, 'normal'),
+            relief='flat'
         )
 
         self.style.map(
-            "Success.TButton",
-            background=[('active', '#0E6B0E'),  # 悬停时更深的绿色
-                       ('pressed', '#0A5A0A')],  # 按下时最深的绿色
-            foreground=[('active', '#FFFFFF'),
-                       ('pressed', '#FFFFFF')]
+            "MaterialWarning.TButton",
+            background=[
+                ('active', '#F57C00'),  # 深橙色悬停
+                ('pressed', '#EF6C00'),  # 更深橙色按下
+                ('disabled', self.colors['text_disabled'])
+            ],
+            foreground=[
+                ('active', '#FFFFFF'),
+                ('pressed', '#FFFFFF'),
+                ('disabled', '#FFFFFF')
+            ]
         )
 
-        # 配置警告按钮样式
+        # Material Design Outlined Button
         self.style.configure(
-            "Warning.TButton",
-            background=self.colors['warning'],
-            foreground='#FFFFFF',  # 纯白色文字
-            borderwidth=0,
+            "MaterialOutlined.TButton",
+            background=self.colors['surface'],
+            foreground=self.colors['primary'],
+            borderwidth=1,
             focuscolor='none',
-            padding=(15, 8),
-            font=('Microsoft YaHei UI', 10, 'bold')  # 增大字体并加粗
+            padding=(20, 10),
+            font=('Microsoft YaHei UI', 10, 'normal'),
+            relief='solid'
         )
 
         self.style.map(
-            "Warning.TButton",
-            background=[('active', '#E67E00'),  # 悬停时更深的橙色
-                       ('pressed', '#CC7000')],  # 按下时最深的橙色
-            foreground=[('active', '#FFFFFF'),
-                       ('pressed', '#FFFFFF')]
+            "MaterialOutlined.TButton",
+            background=[
+                ('active', self.colors['hover']),
+                ('pressed', self.colors['pressed']),
+                ('disabled', self.colors['surface'])
+            ],
+            foreground=[
+                ('active', self.colors['primary']),
+                ('pressed', self.colors['primary']),
+                ('disabled', self.colors['text_disabled'])
+            ],
+            bordercolor=[
+                ('active', self.colors['primary']),
+                ('pressed', self.colors['primary']),
+                ('disabled', self.colors['text_disabled'])
+            ]
         )
 
     def load_user_settings(self):
@@ -331,8 +497,8 @@ class FileFilterApp:
 
         # 应用图标和标题
         title_label = tk.Label(title_frame,
-                              text="📦 FileMover v4.0",
-                              font=('Microsoft YaHei UI', 18, 'bold'),
+                              text=icon_manager.get_button_text('package', 'FileMover v4.0'),
+                              font=('Microsoft YaHei UI', 20, 'bold'),
                               fg=self.colors['primary'],
                               bg=self.colors['surface'])
         title_label.pack(side=tk.LEFT)
@@ -340,7 +506,7 @@ class FileFilterApp:
         # 副标题
         subtitle_label = tk.Label(title_frame,
                                 text="现代化文件筛选与移动工具",
-                                font=('Microsoft YaHei UI', 10),
+                                font=('Microsoft YaHei UI', 11),
                                 fg=self.colors['text_secondary'],
                                 bg=self.colors['surface'])
         subtitle_label.pack(side=tk.LEFT, padx=(15, 0), pady=(5, 0))
@@ -349,17 +515,24 @@ class FileFilterApp:
         action_frame = tk.Frame(title_frame, bg=self.colors['surface'])
         action_frame.pack(side=tk.RIGHT)
 
+        # 主题切换按钮
+        theme_button = ttk.Button(action_frame,
+                                text=icon_manager.get_button_text('theme', '主题'),
+                                style="MaterialOutlined.TButton",
+                                command=self.toggle_theme)
+        theme_button.pack(side=tk.RIGHT, padx=(0, 10))
+
         # 预览按钮
         self.preview_button = ttk.Button(action_frame,
-                                       text="👁️ 预览匹配文件",
-                                       style="Modern.TButton",
+                                       text=icon_manager.get_button_text('preview', '预览匹配文件'),
+                                       style="MaterialOutlined.TButton",
                                        command=self.preview_files)
         self.preview_button.pack(side=tk.RIGHT, padx=(0, 10))
 
         # 开始处理按钮
         self.start_button = ttk.Button(action_frame,
-                                     text="🚀 开始处理",
-                                     style="Success.TButton",
+                                     text=icon_manager.get_button_text('rocket', '开始处理'),
+                                     style="MaterialSuccess.TButton",
                                      command=self.start_processing)
         self.start_button.pack(side=tk.RIGHT)
 
@@ -447,25 +620,28 @@ class FileFilterApp:
         # 文件路径输入框
         self.archive_var = tk.StringVar()
         entry_frame = tk.Frame(input_container,
-                             bg='white',
+                             bg=self.colors['input_bg'],
                              relief='solid',
                              bd=1,
-                             highlightbackground=self.colors['border'])
+                             highlightbackground=self.colors['input_border'])
         entry_frame.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
         self.archive_entry = tk.Entry(entry_frame,
                                     textvariable=self.archive_var,
                                     font=('Microsoft YaHei UI', 10),
-                                    bg='white',
+                                    bg=self.colors['input_bg'],
                                     fg=self.colors['text_primary'],
                                     relief='flat',
-                                    bd=0)
+                                    bd=0,
+                                    insertbackground=self.colors['text_primary'],
+                                    selectbackground=self.colors['selected'],
+                                    selectforeground='white')
         self.archive_entry.pack(fill="both", expand=True, padx=8, pady=8)
 
         # 浏览按钮
         browse_btn = ttk.Button(input_container,
-                              text="📂 浏览",
-                              style="Modern.TButton",
+                              text=icon_manager.get_button_text('folder', '浏览'),
+                              style="Material.TButton",
                               command=self.select_archive)
         browse_btn.pack(side="right")
 
@@ -507,10 +683,10 @@ class FileFilterApp:
 
         # 文本框容器
         text_frame = tk.Frame(text_container,
-                            bg='white',
+                            bg=self.colors['input_bg'],
                             relief='solid',
                             bd=1,
-                            highlightbackground=self.colors['border'])
+                            highlightbackground=self.colors['input_border'])
         text_frame.pack(fill="both", expand=True)
 
         # 关键字文本框
@@ -518,12 +694,15 @@ class FileFilterApp:
                                   height=4,
                                   wrap=tk.WORD,
                                   font=('Microsoft YaHei UI', 10),
-                                  bg='white',
+                                  bg=self.colors['input_bg'],
                                   fg=self.colors['text_primary'],
                                   relief='flat',
                                   bd=0,
                                   padx=8,
-                                  pady=8)
+                                  pady=8,
+                                  insertbackground=self.colors['text_primary'],
+                                  selectbackground=self.colors['selected'],
+                                  selectforeground='white')
 
         # 滚动条
         keyword_scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=self.keyword_text.yview)
@@ -538,8 +717,8 @@ class FileFilterApp:
 
         # 清空关键字按钮
         clear_keywords_btn = ttk.Button(button_frame,
-                                      text="🗑️ 清空",
-                                      style="Warning.TButton",
+                                      text=icon_manager.get_button_text('clear', '清空'),
+                                      style="MaterialWarning.TButton",
                                       command=lambda: self.keyword_text.delete(1.0, tk.END))
         clear_keywords_btn.pack(side="left")
 
@@ -564,32 +743,38 @@ class FileFilterApp:
         self.operation_var = tk.StringVar(value=self.config_manager.get("user_preferences.operation_mode", "move"))
 
         # 操作模式单选按钮
-        move_rb = tk.Radiobutton(mode_frame, text="📁 移动文件",
+        move_rb = tk.Radiobutton(mode_frame, text=icon_manager.get_button_text('move', '移动文件'),
                                variable=self.operation_var, value="move",
                                font=('Microsoft YaHei UI', 10),
                                fg=self.colors['text_primary'],
                                bg=self.colors['surface'],
-                               selectcolor=self.colors['primary'])
+                               selectcolor=self.colors['primary'],
+                               activebackground=self.colors['surface'],
+                               activeforeground=self.colors['text_primary'])
         move_rb.pack(side=tk.LEFT, padx=(0, 20))
 
-        copy_rb = tk.Radiobutton(mode_frame, text="📋 复制文件",
+        copy_rb = tk.Radiobutton(mode_frame, text=icon_manager.get_button_text('copy', '复制文件'),
                                variable=self.operation_var, value="copy",
                                font=('Microsoft YaHei UI', 10),
                                fg=self.colors['text_primary'],
                                bg=self.colors['surface'],
-                               selectcolor=self.colors['primary'])
+                               selectcolor=self.colors['primary'],
+                               activebackground=self.colors['surface'],
+                               activeforeground=self.colors['text_primary'])
         copy_rb.pack(side=tk.LEFT, padx=(0, 20))
 
-        link_rb = tk.Radiobutton(mode_frame, text="🔗 创建链接",
+        link_rb = tk.Radiobutton(mode_frame, text=icon_manager.get_button_text('link', '创建链接'),
                                variable=self.operation_var, value="link",
                                font=('Microsoft YaHei UI', 10),
                                fg=self.colors['text_primary'],
                                bg=self.colors['surface'],
-                               selectcolor=self.colors['primary'])
+                               selectcolor=self.colors['primary'],
+                               activebackground=self.colors['surface'],
+                               activeforeground=self.colors['text_primary'])
         link_rb.pack(side=tk.LEFT)
 
         # 高级过滤器
-        self.advanced_filters = AdvancedFilters(content_frame)
+        self.advanced_filters = AdvancedFilters(content_frame, self.colors)
         self.advanced_filters.frame.pack(fill="x", pady=(0, 10))
 
         # 文件类型选择器
@@ -736,7 +921,7 @@ class FileFilterApp:
         self.progress_bar = ttk.Progressbar(
             progress_container,
             mode='indeterminate',
-            style="Custom.Horizontal.TProgressbar"
+            style="Material.Horizontal.TProgressbar"
         )
         self.progress_bar.pack(fill="x", pady=(10, 0))
 
@@ -744,32 +929,31 @@ class FileFilterApp:
         self.setup_progress_bar_style()
 
     def setup_progress_bar_style(self):
-        """设置进度条样式"""
+        """设置Material Design进度条样式"""
         try:
-            style = ttk.Style()
-
             # 创建自定义进度条样式
-            style.configure(
-                "Custom.Horizontal.TProgressbar",
-                troughcolor="#e0e0e0",
-                background="#4CAF50",
-                lightcolor="#66BB6A",
-                darkcolor="#388E3C",
-                borderwidth=1,
+            self.style.configure(
+                "Material.Horizontal.TProgressbar",
+                troughcolor=self.colors['surface_variant'],
+                background=self.colors['primary'],
+                lightcolor=self.colors['primary'],
+                darkcolor=self.colors['primary_variant'],
+                borderwidth=0,
                 relief="flat"
             )
 
             # 设置进度条动画颜色
-            style.map(
-                "Custom.Horizontal.TProgressbar",
-                background=[('active', '#66BB6A')]
+            self.style.map(
+                "Material.Horizontal.TProgressbar",
+                background=[('active', self.colors['primary_variant'])]
             )
         except Exception as e:
             self.logger.debug(f"设置进度条样式失败: {e}")
 
-    def update_progress_status(self, status, icon="⚪", detail=""):
+    def update_progress_status(self, status, icon_name="ready", detail=""):
         """更新进度状态"""
         self.progress_var.set(status)
+        icon = icon_manager.get_icon(icon_name, "⚪")
         self.status_icon_label.config(text=icon)
         self.detail_info_label.config(text=detail)
 
@@ -1060,7 +1244,7 @@ class FileFilterApp:
         """清空输入"""
         self.archive_var.set("")
         self.keyword_text.delete(1.0, tk.END)
-        self.update_progress_status("就绪", "⚪", "")
+        self.update_progress_status("就绪", "ready", "")
 
         # 清理界面状态
         self.file_info_label.config(text="")
@@ -1146,7 +1330,7 @@ class FileFilterApp:
         keywords = self.get_keywords()
 
         try:
-            self.update_progress_status("正在预览...", "🔍", "分析压缩包内容")
+            self.update_progress_status("正在预览...", "search", "分析压缩包内容")
             self.progress_bar.start()
 
             # 在后台线程中执行预览
@@ -1156,7 +1340,7 @@ class FileFilterApp:
 
         except Exception as e:
             self.progress_bar.stop()
-            self.update_progress_status("预览失败", "❌", f"错误: {str(e)}")
+            self.update_progress_status("预览失败", "error", f"错误: {str(e)}")
             messagebox.showerror("错误", f"预览失败: {str(e)}")
 
     def _preview_files_thread(self, archive_path, keywords):
@@ -1175,12 +1359,12 @@ class FileFilterApp:
         self.progress_bar.stop()
 
         if error:
-            self.update_progress_status("预览失败", "❌", f"错误: {error}")
+            self.update_progress_status("预览失败", "error", f"错误: {error}")
             self.log_message(f"预览失败: {error}", "ERROR")
             messagebox.showerror("预览失败", f"预览失败: {error}")
         else:
             total_count = matched_count + unmatched_count
-            self.update_progress_status("预览完成", "✅", f"总计 {total_count} 个文件，命中 {matched_count} 个")
+            self.update_progress_status("预览完成", "success", f"总计 {total_count} 个文件，命中 {matched_count} 个")
             self.log_message(f"预览结果: 总文件 {total_count} 个，命中 {matched_count} 个，未命中 {unmatched_count} 个")
             messagebox.showinfo("预览结果",
                                f"预览完成！\n\n"
@@ -1228,7 +1412,7 @@ class FileFilterApp:
         # 在新线程中执行处理
         self.start_button.config(state='disabled')
         self.progress_bar.start()
-        self.update_progress_status("正在处理...", "⚙️", "解压并分类文件")
+        self.update_progress_status("正在处理...", "processing", "解压并分类文件")
 
         thread = threading.Thread(target=self.process_files, args=(archive_path, keywords, filters, operation))
         thread.daemon = True
@@ -1262,13 +1446,13 @@ class FileFilterApp:
         self.start_button.config(state='normal')
 
         if error:
-            self.update_progress_status("处理失败", "❌", f"错误: {error}")
+            self.update_progress_status("处理失败", "error", f"错误: {error}")
             self.log_message(f"错误: {error}", "ERROR")
             messagebox.showerror("处理失败", f"操作失败: {error}")
         else:
             total_files = len(matched_files) + len(unmatched_files)
             operation_text = {"move": "移动", "copy": "复制", "link": "链接"}[operation]
-            self.update_progress_status(f"处理完成", "🎉", f"总计 {total_files} 个文件已{operation_text}")
+            self.update_progress_status(f"处理完成", "done", f"总计 {total_files} 个文件已{operation_text}")
 
             # 记录详细结果
             self.log_message(f"文件处理完成 ({operation_text}):")
