@@ -153,64 +153,34 @@ class ModernFileFilterApp:
                         height=2)
         shadow.pack(fill="x")
         
-        # 导航内容
+        # 导航内容 - 只保留操作按钮
         nav_content = tk.Frame(nav_container, bg=self.colors['surface'])
         nav_content.pack(fill="both", expand=True, padx=24, pady=16)
-        
-        # 左侧：应用标题和图标
-        left_section = tk.Frame(nav_content, bg=self.colors['surface'])
-        left_section.pack(side="left", fill="y")
-        
-        # 应用图标
-        app_icon = tk.Label(left_section,
-                          text="📦",
-                          font=('Segoe UI Emoji', 24),
-                          fg=self.colors['primary'],
-                          bg=self.colors['surface'])
-        app_icon.pack(side="left", padx=(0, 12))
-        
-        # 应用标题
-        title_frame = tk.Frame(left_section, bg=self.colors['surface'])
-        title_frame.pack(side="left", fill="y")
-        
-        app_title = tk.Label(title_frame,
-                           text="FileMover",
-                           font=('Microsoft YaHei UI', 20, 'bold'),
-                           fg=self.colors['text_primary'],
-                           bg=self.colors['surface'])
-        app_title.pack(anchor="w")
-        
-        app_subtitle = tk.Label(title_frame,
-                              text="现代化文件筛选与移动工具",
-                              font=('Microsoft YaHei UI', 11),
-                              fg=self.colors['text_secondary'],
-                              bg=self.colors['surface'])
-        app_subtitle.pack(anchor="w")
-        
-        # 右侧：操作按钮
-        right_section = tk.Frame(nav_content, bg=self.colors['surface'])
-        right_section.pack(side="right", fill="y")
+
+        # 操作按钮区域（居右显示）
+        button_section = tk.Frame(nav_content, bg=self.colors['surface'])
+        button_section.pack(side="right", fill="y")
         
         # 主题切换按钮
-        theme_btn = ModernButton(right_section, 
-                               "主题", 
+        theme_btn = ModernButton(button_section,
+                               "主题",
                                command=self.toggle_theme,
                                style="outlined",
                                icon="🌓",
                                colors=self.colors)
         theme_btn.container.pack(side="right", padx=(0, 12))
-        
+
         # 预览按钮
-        self.preview_btn = ModernButton(right_section,
+        self.preview_btn = ModernButton(button_section,
                                       "预览匹配文件",
                                       command=self.preview_files,
                                       style="outlined",
                                       icon="👁️",
                                       colors=self.colors)
         self.preview_btn.container.pack(side="right", padx=(0, 12))
-        
+
         # 开始处理按钮
-        self.start_btn = ModernButton(right_section,
+        self.start_btn = ModernButton(button_section,
                                     "开始处理",
                                     command=self.start_processing,
                                     style="success",
