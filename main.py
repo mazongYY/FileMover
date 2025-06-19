@@ -173,6 +173,9 @@ class FileFilterApp:
         # 更新根窗口背景
         self.root.configure(bg=self.colors['background'])
 
+        # 更新TTK样式
+        self.setup_ttk_styles()
+
         # 递归更新所有Frame组件
         self.update_widget_theme(self.root)
 
@@ -218,13 +221,70 @@ class FileFilterApp:
             for child in widget.winfo_children():
                 self.update_widget_theme(child)
 
-        except Exception as e:
+        except Exception:
             # 忽略无法配置的组件
+            pass
+
+    def setup_ttk_styles(self):
+        """配置TTK组件样式以适配主题"""
+        try:
+            # 配置LabelFrame样式
+            self.style.configure(
+                "TLabelframe",
+                background=self.colors['surface'],
+                bordercolor=self.colors['border'],
+                darkcolor=self.colors['border'],
+                lightcolor=self.colors['surface'],
+                borderwidth=1
+            )
+
+            self.style.configure(
+                "TLabelframe.Label",
+                background=self.colors['surface'],
+                foreground=self.colors['text_primary'],
+                font=('Microsoft YaHei UI', 10, 'bold')
+            )
+
+            # 配置Entry样式
+            self.style.configure(
+                "TEntry",
+                fieldbackground=self.colors['input_bg'],
+                background=self.colors['input_bg'],
+                foreground=self.colors['text_primary'],
+                bordercolor=self.colors['input_border'],
+                lightcolor=self.colors['input_border'],
+                darkcolor=self.colors['input_border'],
+                insertcolor=self.colors['text_primary']
+            )
+
+            # 配置Checkbutton样式
+            self.style.configure(
+                "TCheckbutton",
+                background=self.colors['surface'],
+                foreground=self.colors['text_primary'],
+                focuscolor=self.colors['primary']
+            )
+
+            # 配置Label样式
+            self.style.configure(
+                "TLabel",
+                background=self.colors['surface'],
+                foreground=self.colors['text_primary']
+            )
+
+            # 配置Frame样式
+            self.style.configure(
+                "TFrame",
+                background=self.colors['surface']
+            )
+
+        except Exception:
+            # 忽略样式配置错误
             pass
 
     def setup_button_styles(self):
         """配置Material Design按钮样式"""
-        # Material Design Primary Button
+        # Material Design Primary Button - 增强视觉效果
         self.style.configure(
             "Material.TButton",
             background=self.colors['primary'],
@@ -232,8 +292,8 @@ class FileFilterApp:
             borderwidth=0,
             focuscolor='none',
             padding=(24, 12),
-            font=('Microsoft YaHei UI', 10, 'normal'),
-            relief='flat'
+            font=('Microsoft YaHei UI', 10, 'bold'),  # 加粗字体
+            relief='raised'  # 添加立体效果
         )
 
         self.style.map(
@@ -247,10 +307,14 @@ class FileFilterApp:
                 ('active', '#FFFFFF'),
                 ('pressed', '#FFFFFF'),
                 ('disabled', '#FFFFFF')
+            ],
+            relief=[
+                ('active', 'raised'),
+                ('pressed', 'sunken')
             ]
         )
 
-        # Material Design Success Button
+        # Material Design Success Button - 增强视觉效果
         self.style.configure(
             "MaterialSuccess.TButton",
             background=self.colors['success'],
@@ -258,8 +322,8 @@ class FileFilterApp:
             borderwidth=0,
             focuscolor='none',
             padding=(24, 12),
-            font=('Microsoft YaHei UI', 10, 'normal'),
-            relief='flat'
+            font=('Microsoft YaHei UI', 10, 'bold'),  # 加粗字体
+            relief='raised'  # 添加立体效果
         )
 
         self.style.map(
@@ -273,10 +337,14 @@ class FileFilterApp:
                 ('active', '#FFFFFF'),
                 ('pressed', '#FFFFFF'),
                 ('disabled', '#FFFFFF')
+            ],
+            relief=[
+                ('active', 'raised'),
+                ('pressed', 'sunken')
             ]
         )
 
-        # Material Design Warning Button
+        # Material Design Warning Button - 增强视觉效果
         self.style.configure(
             "MaterialWarning.TButton",
             background=self.colors['warning'],
@@ -284,8 +352,8 @@ class FileFilterApp:
             borderwidth=0,
             focuscolor='none',
             padding=(20, 10),
-            font=('Microsoft YaHei UI', 10, 'normal'),
-            relief='flat'
+            font=('Microsoft YaHei UI', 10, 'bold'),  # 加粗字体
+            relief='raised'  # 添加立体效果
         )
 
         self.style.map(
@@ -299,39 +367,135 @@ class FileFilterApp:
                 ('active', '#FFFFFF'),
                 ('pressed', '#FFFFFF'),
                 ('disabled', '#FFFFFF')
+            ],
+            relief=[
+                ('active', 'raised'),
+                ('pressed', 'sunken')
             ]
         )
 
-        # Material Design Outlined Button
+        # Material Design Outlined Button - 深度优化
+        if self.is_dark_theme:
+            # 深色模式：使用更亮的背景和更强的对比度
+            outlined_bg = '#3A3A3A'  # 更亮的深色背景
+            outlined_fg = '#FFFFFF'  # 白色文字
+            outlined_border = '#FFFFFF'  # 白色边框
+            hover_bg = '#4A4A4A'  # 悬停背景
+        else:
+            # 浅色模式：使用更深的边框和文字
+            outlined_bg = '#FFFFFF'
+            outlined_fg = '#1976D2'
+            outlined_border = '#1976D2'
+            hover_bg = '#E3F2FD'  # 浅蓝色悬停背景
+
         self.style.configure(
             "MaterialOutlined.TButton",
-            background=self.colors['surface'],
-            foreground=self.colors['primary'],
-            borderwidth=1,
+            background=outlined_bg,
+            foreground=outlined_fg,
+            borderwidth=2,
             focuscolor='none',
             padding=(20, 10),
-            font=('Microsoft YaHei UI', 10, 'normal'),
+            font=('Microsoft YaHei UI', 10, 'bold'),
             relief='solid'
         )
 
         self.style.map(
             "MaterialOutlined.TButton",
             background=[
-                ('active', self.colors['hover']),
-                ('pressed', self.colors['pressed']),
+                ('active', hover_bg),
+                ('pressed', self.colors['primary']),
                 ('disabled', self.colors['surface'])
             ],
             foreground=[
-                ('active', self.colors['primary']),
-                ('pressed', self.colors['primary']),
+                ('active', outlined_fg),
+                ('pressed', '#FFFFFF'),
                 ('disabled', self.colors['text_disabled'])
             ],
             bordercolor=[
-                ('active', self.colors['primary']),
+                ('active', outlined_border),
                 ('pressed', self.colors['primary']),
                 ('disabled', self.colors['text_disabled'])
             ]
         )
+
+        # Material Design Elevated Button - 深度优化
+        if self.is_dark_theme:
+            # 深色模式：使用更亮的背景，更强对比度
+            elevated_bg = '#404040'  # 明显的深灰色背景
+            elevated_fg = '#FFFFFF'  # 白色文字
+            elevated_border = '#606060'  # 更亮的边框
+            hover_bg = '#505050'  # 悬停时更亮
+        else:
+            # 浅色模式：使用阴影效果
+            elevated_bg = '#F5F5F5'  # 浅灰背景
+            elevated_fg = '#333333'  # 深色文字
+            elevated_border = '#CCCCCC'  # 浅色边框
+            hover_bg = '#EEEEEE'  # 悬停背景
+
+        self.style.configure(
+            "MaterialElevated.TButton",
+            background=elevated_bg,
+            foreground=elevated_fg,
+            borderwidth=1,
+            focuscolor='none',
+            padding=(20, 10),
+            font=('Microsoft YaHei UI', 10, 'bold'),
+            relief='raised'
+        )
+
+        self.style.map(
+            "MaterialElevated.TButton",
+            background=[
+                ('active', hover_bg),
+                ('pressed', elevated_bg),
+                ('disabled', self.colors['surface'])
+            ],
+            foreground=[
+                ('active', elevated_fg),
+                ('pressed', elevated_fg),
+                ('disabled', self.colors['text_disabled'])
+            ],
+            bordercolor=[
+                ('active', elevated_border),
+                ('pressed', elevated_border),
+                ('disabled', self.colors['text_disabled'])
+            ],
+            relief=[
+                ('active', 'raised'),
+                ('pressed', 'sunken')
+            ]
+        )
+
+        # 专门为深色模式设计的高对比度按钮
+        if self.is_dark_theme:
+            self.style.configure(
+                "DarkMode.TButton",
+                background='#FFFFFF',  # 白色背景
+                foreground='#000000',  # 黑色文字
+                borderwidth=2,
+                focuscolor='none',
+                padding=(20, 10),
+                font=('Microsoft YaHei UI', 10, 'bold'),
+                relief='raised'
+            )
+
+            self.style.map(
+                "DarkMode.TButton",
+                background=[
+                    ('active', '#F0F0F0'),  # 悬停时稍暗
+                    ('pressed', '#E0E0E0'),  # 按下时更暗
+                    ('disabled', '#808080')
+                ],
+                foreground=[
+                    ('active', '#000000'),
+                    ('pressed', '#000000'),
+                    ('disabled', '#FFFFFF')
+                ],
+                relief=[
+                    ('active', 'raised'),
+                    ('pressed', 'sunken')
+                ]
+            )
 
     def load_user_settings(self):
         """加载用户设置"""
@@ -516,16 +680,18 @@ class FileFilterApp:
         action_frame.pack(side=tk.RIGHT)
 
         # 主题切换按钮
+        theme_style = "DarkMode.TButton" if self.is_dark_theme else "MaterialElevated.TButton"
         theme_button = ttk.Button(action_frame,
                                 text=icon_manager.get_button_text('theme', '主题'),
-                                style="MaterialOutlined.TButton",
+                                style=theme_style,
                                 command=self.toggle_theme)
         theme_button.pack(side=tk.RIGHT, padx=(0, 10))
 
         # 预览按钮
+        preview_style = "DarkMode.TButton" if self.is_dark_theme else "MaterialElevated.TButton"
         self.preview_button = ttk.Button(action_frame,
                                        text=icon_manager.get_button_text('preview', '预览匹配文件'),
-                                       style="MaterialOutlined.TButton",
+                                       style=preview_style,
                                        command=self.preview_files)
         self.preview_button.pack(side=tk.RIGHT, padx=(0, 10))
 
@@ -568,36 +734,42 @@ class FileFilterApp:
 
 
     def create_card_frame(self, parent, title, icon=""):
-        """创建现代化卡片框架"""
+        """创建Material Design卡片框架"""
         # 卡片容器
         card_container = tk.Frame(parent, bg=self.colors['background'])
-        card_container.pack(fill="x", pady=(0, 20))
+        card_container.pack(fill="x", pady=(0, 16))
 
-        # 卡片主体
+        # 卡片主体 - Material Design卡片样式
         card_frame = tk.Frame(card_container,
                             bg=self.colors['surface'],
                             relief='flat',
-                            bd=1,
-                            highlightbackground=self.colors['border'],
+                            bd=0,
+                            highlightbackground=self.colors['divider'],
                             highlightthickness=1)
-        card_frame.pack(fill="x", padx=5, pady=2)
+        card_frame.pack(fill="x", padx=8, pady=4)
+
+        # 添加卡片阴影效果（通过多层Frame模拟）
+        shadow_frame = tk.Frame(card_container,
+                              bg=self.colors['divider'],
+                              height=2)
+        shadow_frame.pack(fill="x", padx=10, pady=(0, 2))
 
         # 卡片标题栏
-        title_frame = tk.Frame(card_frame, bg=self.colors['surface'], height=45)
-        title_frame.pack(fill="x", padx=20, pady=(15, 10))
+        title_frame = tk.Frame(card_frame, bg=self.colors['surface'], height=48)
+        title_frame.pack(fill="x", padx=16, pady=(16, 8))
         title_frame.pack_propagate(False)
 
         # 标题图标和文字
         title_label = tk.Label(title_frame,
                              text=f"{icon} {title}",
-                             font=('Microsoft YaHei UI', 12, 'bold'),
+                             font=('Microsoft YaHei UI', 13, 'bold'),
                              fg=self.colors['text_primary'],
                              bg=self.colors['surface'])
         title_label.pack(side=tk.LEFT, anchor='w')
 
         # 卡片内容区域
         content_frame = tk.Frame(card_frame, bg=self.colors['surface'])
-        content_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        content_frame.pack(fill="both", expand=True, padx=16, pady=(0, 16))
 
         return content_frame
 
@@ -639,15 +811,16 @@ class FileFilterApp:
         self.archive_entry.pack(fill="both", expand=True, padx=8, pady=8)
 
         # 浏览按钮
+        browse_style = "DarkMode.TButton" if self.is_dark_theme else "Material.TButton"
         browse_btn = ttk.Button(input_container,
                               text=icon_manager.get_button_text('folder', '浏览'),
-                              style="Material.TButton",
+                              style=browse_style,
                               command=self.select_archive)
         browse_btn.pack(side="right")
 
         # 拖拽提示
         self.drag_hint_label = tk.Label(content_frame,
-                                      text="💡 提示：可以直接拖拽压缩包文件到上方输入框",
+                                      text=icon_manager.get_button_text('info', '提示：可以直接拖拽压缩包文件到上方输入框'),
                                       font=('Microsoft YaHei UI', 9),
                                       fg=self.colors['text_secondary'],
                                       bg=self.colors['surface'])
@@ -848,7 +1021,7 @@ class FileFilterApp:
                     widget.config(relief="solid", highlightbackground="#4CAF50")
                 except:
                     pass
-            self.drag_hint_label.config(text="📦 释放文件到输入框", foreground="#4CAF50")
+            self.drag_hint_label.config(text=icon_manager.get_button_text('package', '释放文件到输入框'), foreground=self.colors['success'])
 
         def on_drag_leave(event):
             # 恢复正常状态
@@ -857,7 +1030,7 @@ class FileFilterApp:
                     widget.config(relief="sunken", highlightbackground="")
                 except:
                     pass
-            self.drag_hint_label.config(text="💡 提示：可以直接拖拽压缩包文件到上方输入框", foreground="gray")
+            self.drag_hint_label.config(text=icon_manager.get_button_text('info', '提示：可以直接拖拽压缩包文件到上方输入框'), foreground=self.colors['text_secondary'])
 
         def on_drop(event):
             # 恢复正常状态
@@ -866,7 +1039,7 @@ class FileFilterApp:
                     widget.config(relief="sunken", highlightbackground="")
                 except:
                     pass
-            self.drag_hint_label.config(text="💡 提示：可以直接拖拽压缩包文件到上方输入框", foreground="gray")
+            self.drag_hint_label.config(text=icon_manager.get_button_text('info', '提示：可以直接拖拽压缩包文件到上方输入框'), foreground=self.colors['text_secondary'])
 
             # 处理拖拽的文件
             files = self.root.tk.splitlist(event.data)
@@ -1156,10 +1329,10 @@ class FileFilterApp:
         # 更新文件信息显示
         file_name = os.path.basename(file_path)
         file_size = self.format_file_size(os.path.getsize(file_path))
-        self.file_info_label.config(text=f"✅ {file_name} ({file_size})")
+        self.file_info_label.config(text=icon_manager.get_button_text('success', f'{file_name} ({file_size})'))
 
         # 更新提示信息
-        self.drag_hint_label.config(text=f"📦 已选择: {file_name}", foreground="#4CAF50")
+        self.drag_hint_label.config(text=icon_manager.get_button_text('package', f'已选择: {file_name}'), foreground=self.colors['success'])
 
         self.log_message(f"通过拖拽选择了压缩包: {file_name}")
 
@@ -1233,10 +1406,10 @@ class FileFilterApp:
             # 更新文件信息显示
             file_name = os.path.basename(archive_path)
             file_size = self.format_file_size(os.path.getsize(archive_path))
-            self.file_info_label.config(text=f"✅ {file_name} ({file_size})")
+            self.file_info_label.config(text=icon_manager.get_button_text('success', f'{file_name} ({file_size})'))
 
             # 更新提示信息
-            self.drag_hint_label.config(text=f"📦 已选择: {file_name}", foreground="#4CAF50")
+            self.drag_hint_label.config(text=icon_manager.get_button_text('package', f'已选择: {file_name}'), foreground=self.colors['success'])
 
             self.log_message(f"已选择压缩包: {file_name}")
 
@@ -1248,7 +1421,7 @@ class FileFilterApp:
 
         # 清理界面状态
         self.file_info_label.config(text="")
-        self.drag_hint_label.config(text="💡 提示：可以直接拖拽压缩包文件到上方输入框", foreground="gray")
+        self.drag_hint_label.config(text=icon_manager.get_button_text('info', '提示：可以直接拖拽压缩包文件到上方输入框'), foreground=self.colors['text_secondary'])
 
         # 清理临时目录
         if self.temp_extract_dir:
