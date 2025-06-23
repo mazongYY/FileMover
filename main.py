@@ -17,7 +17,7 @@ from icon_manager import icon_manager
 class FileFilterApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("文件筛选与移动工具 v4.0")
+        self.root.title("文件筛选与移动工具 v4.0 - 原始UI")
         self.root.geometry("1200x800")
         self.root.resizable(True, True)
 
@@ -38,7 +38,7 @@ class FileFilterApp:
 
         # 初始化日志系统
         self.logger = setup_logging()
-        self.logger.info("程序启动 v4.0 - 第三阶段")
+        self.logger.info("程序启动 v4.0 - 原始UI版本")
 
         # 初始化项目目录
         try:
@@ -56,446 +56,106 @@ class FileFilterApp:
         # 添加临时目录跟踪
         self.temp_extract_dir = None
 
-        # 初始化现代化样式
-        self.setup_modern_styles()
+        # 初始化原始样式（去除深色适配）
+        self.setup_original_styles()
 
         # 加载用户配置
         self.load_user_settings()
 
         self.setup_ui()
 
-    def setup_modern_styles(self):
-        """设置现代化样式主题"""
+    def setup_original_styles(self):
+        """设置原始浅色样式主题"""
         self.style = ttk.Style()
 
-        # 检测系统主题
-        self.is_dark_theme = self.detect_system_theme()
+        # 使用系统默认主题
+        self.style.theme_use('winnative')  # Windows原生样式
 
-        # 定义Material Design配色方案
-        if self.is_dark_theme:
-            self.colors = {
-                # Material Design Dark Theme
-                'primary': '#1976D2',      # Material Blue 700
-                'primary_variant': '#1565C0',  # Material Blue 800
-                'secondary': '#03DAC6',    # Material Teal 200
-                'success': '#4CAF50',      # Material Green 500
-                'warning': '#FF9800',      # Material Orange 500
-                'error': '#F44336',        # Material Red 500
-                'background': '#121212',   # Material Dark Background
-                'surface': '#1E1E1E',      # Material Dark Surface
-                'surface_variant': '#2D2D2D',  # 表面变体
-                'text_primary': '#FFFFFF', # 主要文字
-                'text_secondary': '#B3B3B3', # 次要文字
-                'text_disabled': '#666666', # 禁用文字
-                'border': '#333333',       # 边框色
-                'divider': '#2D2D2D',      # 分割线
-                'input_bg': '#2D2D2D',     # 输入框背景
-                'input_border': '#404040', # 输入框边框
-                'hover': '#333333',        # 悬停色
-                'pressed': '#404040',      # 按下色
-                'selected': '#1976D2',     # 选中色
-            }
-        else:
-            self.colors = {
-                # Material Design Light Theme
-                'primary': '#1976D2',      # Material Blue 700
-                'primary_variant': '#1565C0',  # Material Blue 800
-                'secondary': '#03DAC6',    # Material Teal 200
-                'success': '#4CAF50',      # Material Green 500
-                'warning': '#FF9800',      # Material Orange 500
-                'error': '#F44336',        # Material Red 500
-                'background': '#FAFAFA',   # Material Light Background
-                'surface': '#FFFFFF',      # Material Light Surface
-                'surface_variant': '#F5F5F5',  # 表面变体
-                'text_primary': '#212121', # 主要文字
-                'text_secondary': '#757575', # 次要文字
-                'text_disabled': '#BDBDBD', # 禁用文字
-                'border': '#E0E0E0',       # 边框色
-                'divider': '#E0E0E0',      # 分割线
-                'input_bg': '#FFFFFF',     # 输入框背景
-                'input_border': '#CCCCCC', # 输入框边框
-                'hover': '#F5F5F5',        # 悬停色
-                'pressed': '#EEEEEE',      # 按下色
-                'selected': '#1976D2',     # 选中色
-            }
+        # 定义原始配色方案（仅浅色）
+        self.colors = {
+            'primary': '#0078D4',          # Windows蓝色
+            'primary_variant': '#106EBE',  # 深一点的蓝色
+            'secondary': '#00BCF2',        # Windows浅蓝色
+            'success': '#107C10',          # Windows绿色
+            'warning': '#FF8C00',          # Windows橙色
+            'error': '#D13438',            # Windows红色
+            'background': 'SystemButtonFace',  # 系统默认背景
+            'surface': 'SystemButtonFace',     # 系统默认表面
+            'surface_variant': '#F0F0F0',      # 浅灰色变体
+            'text_primary': 'SystemButtonText', # 系统默认文字
+            'text_secondary': 'SystemGrayText', # 系统灰色文字
+            'text_disabled': 'SystemGrayText',  # 禁用文字
+            'border': 'SystemButtonShadow',     # 系统边框色
+            'divider': '#E0E0E0',              # 分割线
+            'input_bg': 'SystemWindow',         # 系统输入框背景
+            'input_border': 'SystemButtonShadow', # 输入框边框
+            'hover': '#E5F3FF',                # 悬停色
+            'pressed': '#CCE8FF',              # 按下色
+            'selected': '#0078D4',             # 选中色
+        }
 
-    def detect_system_theme(self):
-        """检测系统主题"""
-        # 首先检查用户配置
-        user_theme = self.config_manager.get("user_preferences.ui_settings.theme_mode", "auto")
-
-        if user_theme == "dark":
-            return True
-        elif user_theme == "light":
-            return False
-
-        # 自动检测系统主题
-        try:
-            import winreg
-            registry = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
-            key = winreg.OpenKey(registry, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize")
-            value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
-            winreg.CloseKey(key)
-            return value == 0  # 0 = 深色主题, 1 = 浅色主题
-        except:
-            return False  # 默认浅色主题
-
-    def toggle_theme(self):
-        """切换主题"""
-        current_mode = self.config_manager.get("user_preferences.ui_settings.theme_mode", "auto")
-
-        if current_mode == "auto":
-            # 从自动切换到深色
-            new_mode = "dark"
-        elif current_mode == "dark":
-            # 从深色切换到浅色
-            new_mode = "light"
-        else:
-            # 从浅色切换到自动
-            new_mode = "auto"
-
-        self.config_manager.set("user_preferences.ui_settings.theme_mode", new_mode)
-        self.config_manager.save_config()
-
-        # 重新初始化主题
-        self.setup_modern_styles()
-        self.refresh_ui_theme()
-
-        # 显示提示
-        theme_names = {"auto": "自动", "dark": "深色", "light": "浅色"}
-        messagebox.showinfo("主题切换", f"已切换到{theme_names[new_mode]}主题")
-
-    def refresh_ui_theme(self):
-        """刷新UI主题"""
-        # 重新配置按钮样式
-        self.setup_button_styles()
-
-        # 更新根窗口背景
-        self.root.configure(bg=self.colors['background'])
-
-        # 更新TTK样式
-        self.setup_ttk_styles()
-
-        # 递归更新所有Frame组件
-        self.update_widget_theme(self.root)
-
-    def update_widget_theme(self, widget):
-        """递归更新组件主题"""
-        try:
-            widget_class = widget.winfo_class()
-
-            # 更新Frame组件
-            if widget_class in ['Frame', 'Toplevel']:
-                widget.configure(bg=self.colors['background'])
-
-            # 更新Label组件
-            elif widget_class == 'Label':
-                # 根据当前前景色判断是主要还是次要文字
-                current_fg = widget.cget('fg')
-                if current_fg in ['gray', 'grey', '#666666', '#757575', '#B3B3B3']:
-                    widget.configure(fg=self.colors['text_secondary'], bg=self.colors['surface'])
-                else:
-                    widget.configure(fg=self.colors['text_primary'], bg=self.colors['surface'])
-
-            # 更新Entry组件
-            elif widget_class == 'Entry':
-                widget.configure(
-                    bg=self.colors['input_bg'],
-                    fg=self.colors['text_primary'],
-                    insertbackground=self.colors['text_primary'],
-                    selectbackground=self.colors['selected'],
-                    selectforeground='white'
-                )
-
-            # 更新Text组件
-            elif widget_class == 'Text':
-                widget.configure(
-                    bg=self.colors['input_bg'],
-                    fg=self.colors['text_primary'],
-                    insertbackground=self.colors['text_primary'],
-                    selectbackground=self.colors['selected'],
-                    selectforeground='white'
-                )
-
-            # 递归处理子组件
-            for child in widget.winfo_children():
-                self.update_widget_theme(child)
-
-        except Exception:
-            # 忽略无法配置的组件
-            pass
-
-    def setup_ttk_styles(self):
-        """配置TTK组件样式以适配主题"""
-        try:
-            # 配置LabelFrame样式
-            self.style.configure(
-                "TLabelframe",
-                background=self.colors['surface'],
-                bordercolor=self.colors['border'],
-                darkcolor=self.colors['border'],
-                lightcolor=self.colors['surface'],
-                borderwidth=1
-            )
-
-            self.style.configure(
-                "TLabelframe.Label",
-                background=self.colors['surface'],
-                foreground=self.colors['text_primary'],
-                font=('Microsoft YaHei UI', 10, 'bold')
-            )
-
-            # 配置Entry样式
-            self.style.configure(
-                "TEntry",
-                fieldbackground=self.colors['input_bg'],
-                background=self.colors['input_bg'],
-                foreground=self.colors['text_primary'],
-                bordercolor=self.colors['input_border'],
-                lightcolor=self.colors['input_border'],
-                darkcolor=self.colors['input_border'],
-                insertcolor=self.colors['text_primary']
-            )
-
-            # 配置Checkbutton样式
-            self.style.configure(
-                "TCheckbutton",
-                background=self.colors['surface'],
-                foreground=self.colors['text_primary'],
-                focuscolor=self.colors['primary']
-            )
-
-            # 配置Label样式
-            self.style.configure(
-                "TLabel",
-                background=self.colors['surface'],
-                foreground=self.colors['text_primary']
-            )
-
-            # 配置Frame样式
-            self.style.configure(
-                "TFrame",
-                background=self.colors['surface']
-            )
-
-        except Exception:
-            # 忽略样式配置错误
-            pass
+    # 移除深色主题相关方法，保持原始浅色UI
 
     def setup_button_styles(self):
-        """配置Material Design按钮样式"""
-        # Material Design Primary Button - 增强视觉效果
+        """配置原始按钮样式"""
+        # Primary Button
         self.style.configure(
-            "Material.TButton",
+            "Primary.TButton",
             background=self.colors['primary'],
-            foreground='#FFFFFF',
-            borderwidth=0,
-            focuscolor='none',
-            padding=(24, 12),
-            font=('Microsoft YaHei UI', 10, 'bold'),  # 加粗字体
-            relief='raised'  # 添加立体效果
-        )
-
-        self.style.map(
-            "Material.TButton",
-            background=[
-                ('active', self.colors['primary_variant']),
-                ('pressed', self.colors['primary_variant']),
-                ('disabled', self.colors['text_disabled'])
-            ],
-            foreground=[
-                ('active', '#FFFFFF'),
-                ('pressed', '#FFFFFF'),
-                ('disabled', '#FFFFFF')
-            ],
-            relief=[
-                ('active', 'raised'),
-                ('pressed', 'sunken')
-            ]
-        )
-
-        # Material Design Success Button - 增强视觉效果
-        self.style.configure(
-            "MaterialSuccess.TButton",
-            background=self.colors['success'],
-            foreground='#FFFFFF',
-            borderwidth=0,
-            focuscolor='none',
-            padding=(24, 12),
-            font=('Microsoft YaHei UI', 10, 'bold'),  # 加粗字体
-            relief='raised'  # 添加立体效果
-        )
-
-        self.style.map(
-            "MaterialSuccess.TButton",
-            background=[
-                ('active', '#45A049'),  # 深绿色悬停
-                ('pressed', '#3D8B40'),  # 更深绿色按下
-                ('disabled', self.colors['text_disabled'])
-            ],
-            foreground=[
-                ('active', '#FFFFFF'),
-                ('pressed', '#FFFFFF'),
-                ('disabled', '#FFFFFF')
-            ],
-            relief=[
-                ('active', 'raised'),
-                ('pressed', 'sunken')
-            ]
-        )
-
-        # Material Design Warning Button - 增强视觉效果
-        self.style.configure(
-            "MaterialWarning.TButton",
-            background=self.colors['warning'],
-            foreground='#FFFFFF',
-            borderwidth=0,
-            focuscolor='none',
-            padding=(20, 10),
-            font=('Microsoft YaHei UI', 10, 'bold'),  # 加粗字体
-            relief='raised'  # 添加立体效果
-        )
-
-        self.style.map(
-            "MaterialWarning.TButton",
-            background=[
-                ('active', '#F57C00'),  # 深橙色悬停
-                ('pressed', '#EF6C00'),  # 更深橙色按下
-                ('disabled', self.colors['text_disabled'])
-            ],
-            foreground=[
-                ('active', '#FFFFFF'),
-                ('pressed', '#FFFFFF'),
-                ('disabled', '#FFFFFF')
-            ],
-            relief=[
-                ('active', 'raised'),
-                ('pressed', 'sunken')
-            ]
-        )
-
-        # Material Design Outlined Button - 深度优化
-        if self.is_dark_theme:
-            # 深色模式：使用更亮的背景和更强的对比度
-            outlined_bg = '#3A3A3A'  # 更亮的深色背景
-            outlined_fg = '#FFFFFF'  # 白色文字
-            outlined_border = '#FFFFFF'  # 白色边框
-            hover_bg = '#4A4A4A'  # 悬停背景
-        else:
-            # 浅色模式：使用更深的边框和文字
-            outlined_bg = '#FFFFFF'
-            outlined_fg = '#1976D2'
-            outlined_border = '#1976D2'
-            hover_bg = '#E3F2FD'  # 浅蓝色悬停背景
-
-        self.style.configure(
-            "MaterialOutlined.TButton",
-            background=outlined_bg,
-            foreground=outlined_fg,
-            borderwidth=2,
-            focuscolor='none',
-            padding=(20, 10),
-            font=('Microsoft YaHei UI', 10, 'bold'),
-            relief='solid'
-        )
-
-        self.style.map(
-            "MaterialOutlined.TButton",
-            background=[
-                ('active', hover_bg),
-                ('pressed', self.colors['primary']),
-                ('disabled', self.colors['surface'])
-            ],
-            foreground=[
-                ('active', outlined_fg),
-                ('pressed', '#FFFFFF'),
-                ('disabled', self.colors['text_disabled'])
-            ],
-            bordercolor=[
-                ('active', outlined_border),
-                ('pressed', self.colors['primary']),
-                ('disabled', self.colors['text_disabled'])
-            ]
-        )
-
-        # Material Design Elevated Button - 深度优化
-        if self.is_dark_theme:
-            # 深色模式：使用更亮的背景，更强对比度
-            elevated_bg = '#404040'  # 明显的深灰色背景
-            elevated_fg = '#FFFFFF'  # 白色文字
-            elevated_border = '#606060'  # 更亮的边框
-            hover_bg = '#505050'  # 悬停时更亮
-        else:
-            # 浅色模式：使用阴影效果
-            elevated_bg = '#F5F5F5'  # 浅灰背景
-            elevated_fg = '#333333'  # 深色文字
-            elevated_border = '#CCCCCC'  # 浅色边框
-            hover_bg = '#EEEEEE'  # 悬停背景
-
-        self.style.configure(
-            "MaterialElevated.TButton",
-            background=elevated_bg,
-            foreground=elevated_fg,
+            foreground='white',
             borderwidth=1,
             focuscolor='none',
-            padding=(20, 10),
-            font=('Microsoft YaHei UI', 10, 'bold'),
-            relief='raised'
+            padding=(20, 8),
+            font=('Microsoft YaHei UI', 9)
         )
 
         self.style.map(
-            "MaterialElevated.TButton",
+            "Primary.TButton",
             background=[
-                ('active', hover_bg),
-                ('pressed', elevated_bg),
-                ('disabled', self.colors['surface'])
-            ],
-            foreground=[
-                ('active', elevated_fg),
-                ('pressed', elevated_fg),
-                ('disabled', self.colors['text_disabled'])
-            ],
-            bordercolor=[
-                ('active', elevated_border),
-                ('pressed', elevated_border),
-                ('disabled', self.colors['text_disabled'])
-            ],
-            relief=[
-                ('active', 'raised'),
-                ('pressed', 'sunken')
+                ('active', self.colors['primary_variant']),
+                ('pressed', '#005A9E')
             ]
         )
 
-        # 专门为深色模式设计的高对比度按钮
-        if self.is_dark_theme:
-            self.style.configure(
-                "DarkMode.TButton",
-                background='#FFFFFF',  # 白色背景
-                foreground='#000000',  # 黑色文字
-                borderwidth=2,
-                focuscolor='none',
-                padding=(20, 10),
-                font=('Microsoft YaHei UI', 10, 'bold'),
-                relief='raised'
-            )
+        # Success Button
+        self.style.configure(
+            "Success.TButton",
+            background=self.colors['success'],
+            foreground='white',
+            borderwidth=1,
+            focuscolor='none',
+            padding=(20, 8),
+            font=('Microsoft YaHei UI', 9)
+        )
 
-            self.style.map(
-                "DarkMode.TButton",
-                background=[
-                    ('active', '#F0F0F0'),  # 悬停时稍暗
-                    ('pressed', '#E0E0E0'),  # 按下时更暗
-                    ('disabled', '#808080')
-                ],
-                foreground=[
-                    ('active', '#000000'),
-                    ('pressed', '#000000'),
-                    ('disabled', '#FFFFFF')
-                ],
-                relief=[
-                    ('active', 'raised'),
-                    ('pressed', 'sunken')
-                ]
-            )
+        self.style.map(
+            "Success.TButton",
+            background=[
+                ('active', '#0E6A0E'),
+                ('pressed', '#0C5A0C')
+            ]
+        )
+
+        # Warning Button
+        self.style.configure(
+            "Warning.TButton",
+            background=self.colors['warning'],
+            foreground='white',
+            borderwidth=1,
+            focuscolor='none',
+            padding=(16, 6),
+            font=('Microsoft YaHei UI', 9)
+        )
+
+        self.style.map(
+            "Warning.TButton",
+            background=[
+                ('active', '#E67C00'),
+                ('pressed', '#CC6600')
+            ]
+        )
+
+        # 删除深色主题相关的按钮样式
 
     def load_user_settings(self):
         """加载用户设置"""
