@@ -68,7 +68,7 @@
 
 1. **克隆仓库**
    ```bash
-   git clone https://gitee.com/m6773/FileMover.git
+   git clone https://github.com/mazongYY/FileMover.git
    cd FileMover
    ```
 
@@ -84,9 +84,12 @@
 
 ### 方法二：使用可执行文件
 
-1. 下载最新版本的可执行文件
-2. 双击运行 `文件筛选与移动工具v4.0.exe`
-3. 无需安装Python环境
+1. 在 [Releases](https://github.com/mazongYY/FileMover/releases) 页面下载最新版本
+2. 推荐版本：
+   - **FileMover_Modern_v2.exe** ⭐⭐⭐⭐ 现代化UI v2（最新推荐）
+   - **FileMover_Clean.exe** ⭐⭐⭐ 原始UI版本
+   - **FileMover_Ultra_v2.exe** ⭐⭐ 超级版本v2
+3. 双击运行，无需安装Python环境
 
 ## 📖 使用指南
 
@@ -239,11 +242,13 @@ pip install rarfile
 
 ## 📚 版本历史
 
-### v4.0 (2024-05-31)
-- ✨ 新增自动清理功能
-- 🎨 优化窗口大小和布局
-- 🔧 改进错误处理机制
-- 📝 完善文档和注释
+### v4.0 (2024-12-19)
+- ✨ 全新现代化UI v2设计（深色主题）
+- 🎨 恢复原始UI版本（浅色主题）
+- 🚀 处理完成自动打开文件夹功能
+- 🛡️ 完全解决pkg_resources错误问题
+- 🔧 优化性能和用户体验
+- � 多版本可执行文件发布
 
 ### v3.0 (2024-05-30)
 - ✨ 新增撤销功能

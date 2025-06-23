@@ -8,7 +8,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+# dist/  # 注释掉，允许提交发布版本
 downloads/
 eggs/
 .eggs/
@@ -211,8 +211,8 @@ test_*.7z
 .idea/
 *.iml
 
-# 打包文件
-*.exe
+# 打包文件 - 但保留发布的exe文件
+# *.exe  # 注释掉，允许提交发布版本的exe
 *.msi
 *.dmg
 *.pkg
