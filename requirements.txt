@@ -1,26 +1,12 @@
-# Windows 文件筛选与移动工具依赖文件
-#
-# 核心功能需要以下依赖来支持压缩包解压
+# FileMover - Python依赖包
 
-# 必需：用于处理RAR文件
-rarfile>=4.0
+# 核心依赖 - 使用Python标准库，无需额外安装
+# tkinter, zipfile, json, logging, os, shutil, threading, re, datetime, platform
 
-# 必需：用于处理7Z文件
-py7zr>=0.20.0
+# 可选依赖 - 用于支持更多压缩格式（如需要请取消注释）
+# rarfile>=4.0      # RAR文件支持（需要系统安装WinRAR或UnRAR）
+# py7zr>=0.20.0     # 7Z文件支持
+# cryptography>=3.0 # 密码保护压缩包支持
 
-# 可选：用于打包为exe文件
-pyinstaller>=5.0.0
-
-# 可选：用于类型检查（开发时使用）
-mypy>=1.0.0
-
-# 可选：用于代码格式化（开发时使用）
-black>=22.0.0
-
-# 可选：用于代码检查（开发时使用）
-flake8>=5.0.0
-
-# 注意：
-# - ZIP文件支持使用Python标准库zipfile模块
-# - RAR文件需要安装WinRAR或UnRAR程序
-# - 7Z文件通过py7zr库支持
+# 开发依赖
+# pyinstaller>=5.0  # 用于打包可执行文件
