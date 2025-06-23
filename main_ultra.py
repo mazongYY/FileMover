@@ -9,6 +9,8 @@ from tkinter import filedialog, messagebox
 import os
 import zipfile
 import shutil
+import subprocess
+import platform
 
 
 class UltraFileMover:
@@ -262,12 +264,31 @@ class UltraFileMover:
                             pass
             
             self.status.config(text=f"完成! 匹配: {matched_count}/{total_count}")
-            messagebox.showinfo("处理完成", 
-                              f"处理完成!\n匹配文件: {matched_count}\n总文件: {total_count}\n输出目录: {output_dir}")
-            
+
+            # 显示完成对话框并询问是否打开文件夹
+            result = messagebox.askyesno("处理完成",
+                                       f"处理完成!\n匹配文件: {matched_count}\n总文件: {total_count}\n\n是否打开输出文件夹？")
+
+            if result:
+                self.open_folder(output_dir)
+
         except Exception as e:
             self.status.config(text="处理失败")
             messagebox.showerror("错误", f"处理失败: {str(e)}")
+
+    def open_folder(self, folder_path):
+        """跨平台打开文件夹"""
+        try:
+            if platform.system() == "Windows":
+                os.startfile(folder_path)
+            elif platform.system() == "Darwin":
+                subprocess.run(["open", folder_path])
+            else:
+                subprocess.run(["xdg-open", folder_path])
+            return True
+        except Exception as e:
+            messagebox.showerror("错误", f"无法打开文件夹: {e}")
+            return False
     
     def run(self):
         """运行程序"""

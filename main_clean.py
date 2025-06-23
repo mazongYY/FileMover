@@ -9,6 +9,8 @@ from tkinter import ttk, filedialog, messagebox
 import threading
 import os
 import logging
+import subprocess
+import platform
 from utils import (find_and_move_files, validate_directory, count_matching_files,
                    find_and_move_files_from_archive, validate_archive,
                    count_matching_files_in_archive, cleanup_temp_directory,
@@ -278,7 +280,133 @@ class FileFilterApp:
 
     def start_processing(self):
         """开始处理"""
-        messagebox.showinfo("处理", "处理功能开发中...")
+        # 验证输入
+        archive_path = self.archive_var.get().strip()
+        if not archive_path:
+            messagebox.showerror("错误", "请选择压缩包文件")
+            return
+
+        if not os.path.exists(archive_path):
+            messagebox.showerror("错误", "压缩包文件不存在")
+            return
+
+        keywords_text = self.keyword_text.get(1.0, tk.END).strip()
+        if not keywords_text:
+            messagebox.showerror("错误", "请输入关键字")
+            return
+
+        # 在新线程中处理
+        thread = threading.Thread(target=self.process_files_thread,
+                                 args=(archive_path, keywords_text))
+        thread.daemon = True
+        thread.start()
+
+    def process_files_thread(self, archive_path, keywords_text):
+        """在线程中处理文件"""
+        try:
+            # 更新状态
+            self.status_label.config(text="正在处理...")
+            self.progress_var.set(0)
+
+            keywords = [k.strip() for k in keywords_text.split('\n') if k.strip()]
+            operation_mode = self.operation_var.get()
+
+            # 创建输出目录
+            desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+            output_dir = os.path.join(desktop, "FileMover_Output")
+            matched_dir = os.path.join(output_dir, "匹配文件")
+            unmatched_dir = os.path.join(output_dir, "未匹配文件")
+
+            for d in [output_dir, matched_dir, unmatched_dir]:
+                os.makedirs(d, exist_ok=True)
+
+            # 处理文件
+            matched_count, total_count = self.process_archive_files(
+                archive_path, keywords, matched_dir, unmatched_dir, operation_mode)
+
+            # 更新状态
+            self.status_label.config(text=f"完成! 匹配: {matched_count}/{total_count}")
+            self.progress_var.set(100)
+
+            # 显示完成对话框
+            self.root.after(0, lambda: self.show_completion_dialog(output_dir, matched_count, total_count))
+
+        except Exception as e:
+            self.logger.error(f"处理失败: {e}")
+            self.status_label.config(text="处理失败")
+            self.root.after(0, lambda: messagebox.showerror("错误", f"处理失败: {str(e)}"))
+
+    def process_archive_files(self, archive_path, keywords, matched_dir, unmatched_dir, operation_mode):
+        """处理压缩包文件"""
+        import zipfile
+        import shutil
+
+        matched_count = 0
+        total_count = 0
+
+        try:
+            with zipfile.ZipFile(archive_path, 'r') as zip_file:
+                file_list = [f for f in zip_file.filelist if not f.is_dir()]
+                total_count = len(file_list)
+
+                for i, file_info in enumerate(file_list):
+                    # 更新进度
+                    progress = (i + 1) / total_count * 100
+                    self.progress_var.set(progress)
+
+                    filename = file_info.filename
+
+                    # 检查是否匹配关键字
+                    is_matched = False
+                    for keyword in keywords:
+                        if keyword.lower() in filename.lower():
+                            is_matched = True
+                            break
+
+                    # 提取文件
+                    try:
+                        zip_file.extract(file_info, self.extracted_dir)
+                        source_path = os.path.join(self.extracted_dir, filename)
+
+                        target_dir = matched_dir if is_matched else unmatched_dir
+                        target_path = os.path.join(target_dir, os.path.basename(filename))
+
+                        # 处理重名文件
+                        counter = 1
+                        original_target = target_path
+                        while os.path.exists(target_path):
+                            name, ext = os.path.splitext(original_target)
+                            target_path = f"{name}_{counter}{ext}"
+                            counter += 1
+
+                        # 根据操作模式处理文件
+                        if operation_mode == "move":
+                            shutil.move(source_path, target_path)
+                        elif operation_mode == "copy":
+                            shutil.copy2(source_path, target_path)
+                        elif operation_mode == "link":
+                            # 创建快捷方式（Windows）
+                            if platform.system() == "Windows":
+                                import win32com.client
+                                shell = win32com.client.Dispatch("WScript.Shell")
+                                shortcut = shell.CreateShortCut(target_path + ".lnk")
+                                shortcut.Targetpath = source_path
+                                shortcut.save()
+                            else:
+                                # Unix系统创建符号链接
+                                os.symlink(source_path, target_path)
+
+                        if is_matched:
+                            matched_count += 1
+
+                    except Exception as e:
+                        self.logger.error(f"处理文件 {filename} 时出错: {e}")
+                        continue
+
+        except Exception as e:
+            raise Exception(f"无法处理压缩包: {e}")
+
+        return matched_count, total_count
 
     def undo_last_operation(self):
         """撤销上次操作"""
@@ -297,6 +425,87 @@ class FileFilterApp:
         examples = ["图片", "文档", "视频", "音频", "压缩包"]
         self.keyword_text.delete(1.0, tk.END)
         self.keyword_text.insert(1.0, "\n".join(examples))
+
+    def open_folder(self, folder_path):
+        """跨平台打开文件夹"""
+        try:
+            if platform.system() == "Windows":
+                # Windows系统
+                os.startfile(folder_path)
+            elif platform.system() == "Darwin":
+                # macOS系统
+                subprocess.run(["open", folder_path])
+            else:
+                # Linux系统
+                subprocess.run(["xdg-open", folder_path])
+
+            self.logger.info(f"已打开文件夹: {folder_path}")
+            return True
+        except Exception as e:
+            self.logger.error(f"打开文件夹失败: {e}")
+            return False
+
+    def show_completion_dialog(self, output_dir, matched_count, total_count):
+        """显示处理完成对话框"""
+        # 创建自定义对话框
+        dialog = tk.Toplevel(self.root)
+        dialog.title("处理完成")
+        dialog.geometry("400x200")
+        dialog.resizable(False, False)
+
+        # 居中显示
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # 计算居中位置
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - 200
+        y = self.root.winfo_y() + (self.root.winfo_height() // 2) - 100
+        dialog.geometry(f"400x200+{x}+{y}")
+
+        # 主框架
+        main_frame = ttk.Frame(dialog, padding=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # 成功图标和标题
+        title_frame = ttk.Frame(main_frame)
+        title_frame.pack(fill=tk.X, pady=(0, 15))
+
+        ttk.Label(title_frame, text="✅", font=('Arial', 24)).pack(side=tk.LEFT)
+        ttk.Label(title_frame, text="处理完成！",
+                 font=('Microsoft YaHei UI', 14, 'bold')).pack(side=tk.LEFT, padx=(10, 0))
+
+        # 统计信息
+        stats_frame = ttk.Frame(main_frame)
+        stats_frame.pack(fill=tk.X, pady=(0, 15))
+
+        ttk.Label(stats_frame, text=f"匹配文件: {matched_count} 个").pack(anchor=tk.W)
+        ttk.Label(stats_frame, text=f"总文件数: {total_count} 个").pack(anchor=tk.W)
+        ttk.Label(stats_frame, text=f"输出目录: {output_dir}").pack(anchor=tk.W)
+
+        # 按钮框架
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill=tk.X, pady=(15, 0))
+
+        # 打开文件夹按钮
+        open_btn = ttk.Button(button_frame, text="📂 打开文件夹",
+                             command=lambda: self.open_folder_and_close(output_dir, dialog),
+                             style="Primary.TButton")
+        open_btn.pack(side=tk.LEFT, padx=(0, 10))
+
+        # 关闭按钮
+        close_btn = ttk.Button(button_frame, text="关闭",
+                              command=dialog.destroy)
+        close_btn.pack(side=tk.RIGHT)
+
+        # 设置默认按钮
+        open_btn.focus_set()
+        dialog.bind('<Return>', lambda e: self.open_folder_and_close(output_dir, dialog))
+        dialog.bind('<Escape>', lambda e: dialog.destroy())
+
+    def open_folder_and_close(self, folder_path, dialog):
+        """打开文件夹并关闭对话框"""
+        self.open_folder(folder_path)
+        dialog.destroy()
 
     def on_closing(self):
         """窗口关闭事件"""
