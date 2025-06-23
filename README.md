@@ -85,10 +85,7 @@
 ### 方法二：使用可执行文件
 
 1. 在 [Releases](https://github.com/mazongYY/FileMover/releases) 页面下载最新版本
-2. 推荐版本：
-   - **FileMover_Modern_v2.exe** ⭐⭐⭐⭐ 现代化UI v2（最新推荐）
-   - **FileMover_Clean.exe** ⭐⭐⭐ 原始UI版本
-   - **FileMover_Ultra_v2.exe** ⭐⭐ 超级版本v2
+2. 下载 **FileMover_Modern_v2.exe** (现代化UI v2，约13MB)
 3. 双击运行，无需安装Python环境
 
 ## 📖 使用指南
