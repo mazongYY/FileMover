@@ -625,11 +625,214 @@ class ModernFileFilterApp:
 
     def preview_files(self):
         """预览文件"""
-        messagebox.showinfo("预览", "预览功能开发中...")
+        # 验证输入
+        archive_path = self.archive_entry.get().strip()
+        if not archive_path or archive_path == "请选择压缩包文件...":
+            messagebox.showerror("错误", "请选择压缩包文件")
+            return
+
+        if not os.path.exists(archive_path):
+            messagebox.showerror("错误", "压缩包文件不存在")
+            return
+
+        keywords_text = self.keyword_text.get(1.0, tk.END).strip()
+        if not keywords_text:
+            messagebox.showerror("错误", "请输入关键字")
+            return
+
+        try:
+            keywords = [k.strip() for k in keywords_text.split('\n') if k.strip()]
+
+            # 统计匹配文件
+            import zipfile
+            matched_count = 0
+            total_count = 0
+
+            with zipfile.ZipFile(archive_path, 'r') as zip_file:
+                file_list = [f for f in zip_file.filelist if not f.is_dir()]
+                total_count = len(file_list)
+
+                for file_info in file_list:
+                    filename = file_info.filename
+                    for keyword in keywords:
+                        if keyword.lower() in filename.lower():
+                            matched_count += 1
+                            break
+
+            messagebox.showinfo("预览结果",
+                              f"预览完成！\n\n"
+                              f"总文件数: {total_count}\n"
+                              f"匹配文件: {matched_count}\n"
+                              f"未匹配文件: {total_count - matched_count}")
+
+        except Exception as e:
+            messagebox.showerror("错误", f"预览失败: {str(e)}")
 
     def start_processing(self):
         """开始处理"""
-        messagebox.showinfo("处理", "处理功能开发中...")
+        # 验证输入
+        archive_path = self.archive_entry.get().strip()
+        if not archive_path or archive_path == "请选择压缩包文件...":
+            messagebox.showerror("错误", "请选择压缩包文件")
+            return
+
+        if not os.path.exists(archive_path):
+            messagebox.showerror("错误", "压缩包文件不存在")
+            return
+
+        keywords_text = self.keyword_text.get(1.0, tk.END).strip()
+        if not keywords_text:
+            messagebox.showerror("错误", "请输入关键字")
+            return
+
+        # 在新线程中处理
+        thread = threading.Thread(target=self.process_files_thread,
+                                 args=(archive_path, keywords_text))
+        thread.daemon = True
+        thread.start()
+
+    def process_files_thread(self, archive_path, keywords_text):
+        """在线程中处理文件"""
+        try:
+            # 更新状态
+            self.update_status("正在处理...", "解压和筛选文件中", "🔄")
+            self.update_progress(0)
+
+            keywords = [k.strip() for k in keywords_text.split('\n') if k.strip()]
+            operation_mode = self.operation_var.get()
+
+            # 创建输出目录
+            desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+            output_dir = os.path.join(desktop, "FileMover_Output")
+            matched_dir = os.path.join(output_dir, "匹配文件")
+            unmatched_dir = os.path.join(output_dir, "未匹配文件")
+
+            for d in [output_dir, matched_dir, unmatched_dir]:
+                os.makedirs(d, exist_ok=True)
+
+            # 处理文件
+            matched_count, total_count = self.process_archive_files(
+                archive_path, keywords, matched_dir, unmatched_dir, operation_mode)
+
+            # 更新状态
+            self.update_status("处理完成", f"匹配: {matched_count}/{total_count}", "✅")
+            self.update_progress(100)
+
+            # 显示完成对话框
+            self.root.after(0, lambda: self.show_completion_dialog(output_dir, matched_count, total_count))
+
+        except Exception as e:
+            self.logger.error(f"处理失败: {e}")
+            self.update_status("处理失败", str(e), "❌")
+            self.root.after(0, lambda: messagebox.showerror("错误", f"处理失败: {str(e)}"))
+
+    def process_archive_files(self, archive_path, keywords, matched_dir, unmatched_dir, operation_mode):
+        """处理压缩包文件"""
+        import zipfile
+        import shutil
+        import tempfile
+
+        matched_count = 0
+        total_count = 0
+
+        # 创建临时解压目录
+        with tempfile.TemporaryDirectory() as temp_dir:
+            try:
+                with zipfile.ZipFile(archive_path, 'r') as zip_file:
+                    file_list = [f for f in zip_file.filelist if not f.is_dir()]
+                    total_count = len(file_list)
+
+                    for i, file_info in enumerate(file_list):
+                        # 更新进度
+                        progress = (i + 1) / total_count * 100
+                        self.update_progress(progress)
+
+                        filename = file_info.filename
+
+                        # 检查是否匹配关键字
+                        is_matched = False
+                        for keyword in keywords:
+                            if keyword.lower() in filename.lower():
+                                is_matched = True
+                                break
+
+                        # 提取文件
+                        try:
+                            zip_file.extract(file_info, temp_dir)
+                            source_path = os.path.join(temp_dir, filename)
+
+                            target_dir = matched_dir if is_matched else unmatched_dir
+                            target_path = os.path.join(target_dir, os.path.basename(filename))
+
+                            # 处理重名文件
+                            counter = 1
+                            original_target = target_path
+                            while os.path.exists(target_path):
+                                name, ext = os.path.splitext(original_target)
+                                target_path = f"{name}_{counter}{ext}"
+                                counter += 1
+
+                            # 根据操作模式处理文件
+                            if operation_mode == "move":
+                                shutil.move(source_path, target_path)
+                            elif operation_mode == "copy":
+                                shutil.copy2(source_path, target_path)
+                            elif operation_mode == "link":
+                                # 创建快捷方式（Windows）
+                                if platform.system() == "Windows":
+                                    try:
+                                        import win32com.client
+                                        shell = win32com.client.Dispatch("WScript.Shell")
+                                        shortcut = shell.CreateShortCut(target_path + ".lnk")
+                                        shortcut.Targetpath = source_path
+                                        shortcut.save()
+                                    except ImportError:
+                                        # 如果没有win32com，则复制文件
+                                        shutil.copy2(source_path, target_path)
+                                else:
+                                    # Unix系统创建符号链接
+                                    os.symlink(source_path, target_path)
+
+                            if is_matched:
+                                matched_count += 1
+
+                        except Exception as e:
+                            self.logger.error(f"处理文件 {filename} 时出错: {e}")
+                            continue
+
+            except Exception as e:
+                raise Exception(f"无法处理压缩包: {e}")
+
+        return matched_count, total_count
+
+    def show_completion_dialog(self, output_dir, matched_count, total_count):
+        """显示处理完成对话框"""
+        result = messagebox.askyesno("处理完成",
+                                   f"处理完成！\n\n"
+                                   f"匹配文件: {matched_count}\n"
+                                   f"总文件数: {total_count}\n"
+                                   f"输出目录: {output_dir}\n\n"
+                                   f"是否打开输出文件夹？")
+
+        if result:
+            self.open_folder(output_dir)
+
+    def open_folder(self, folder_path):
+        """跨平台打开文件夹"""
+        try:
+            if platform.system() == "Windows":
+                os.startfile(folder_path)
+            elif platform.system() == "Darwin":
+                subprocess.run(["open", folder_path])
+            else:
+                subprocess.run(["xdg-open", folder_path])
+
+            self.logger.info(f"已打开文件夹: {folder_path}")
+            return True
+        except Exception as e:
+            self.logger.error(f"打开文件夹失败: {e}")
+            messagebox.showerror("错误", f"无法打开文件夹: {e}")
+            return False
 
     def on_closing(self):
         """窗口关闭事件"""
