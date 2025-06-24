@@ -3,10 +3,11 @@
 # 核心依赖 - 使用Python标准库，无需额外安装
 # tkinter, zipfile, json, logging, os, shutil, threading, re, datetime, platform
 
+# 构建依赖 - GitHub Actions需要
+pyinstaller>=5.0  # 用于打包可执行文件
+requests>=2.25.0  # 用于GitHub API测试
+
 # 可选依赖 - 用于支持更多压缩格式（如需要请取消注释）
 # rarfile>=4.0      # RAR文件支持（需要系统安装WinRAR或UnRAR）
 # py7zr>=0.20.0     # 7Z文件支持
 # cryptography>=3.0 # 密码保护压缩包支持
-
-# 开发依赖
-# pyinstaller>=5.0  # 用于打包可执行文件

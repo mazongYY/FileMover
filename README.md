@@ -2,10 +2,10 @@
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/mazongYY/FileMover/releases)
-[![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/mazongYY/FileMover)
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](https://github.com/mazongYY/FileMover/releases)
+[![Python](https://img.shields.io/badge/Python-3.8+-green.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/mazongYY/FileMover)
 
 **一个现代化的文件筛选与移动工具，支持从压缩包中智能筛选和分类文件**
 
