@@ -9,8 +9,6 @@
 
 **一个现代化的文件筛选与移动工具，支持从压缩包中智能筛选和分类文件**
 
-*A modern file filtering and moving tool that intelligently filters and categorizes files from archives*
-
 [中文](README.md) | [English](README_EN.md)
 
 </div>
