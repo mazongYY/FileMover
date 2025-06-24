@@ -13,10 +13,9 @@ on:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
-  build:
+  build-and-release:
     runs-on: windows-latest
 
     steps:
@@ -32,49 +31,32 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller
-        pip install rarfile py7zr
 
     - name: Build executable
       run: |
-        pyinstaller --onefile --windowed --name=FileMover --clean main.py
+        pyinstaller --onefile --windowed --name=FileMover main.py
 
-    - name: Create release package
+    - name: Verify build
       run: |
-        mkdir release
-        copy dist\FileMover.exe release\
-        if exist "dist\使用说明.txt" copy "dist\使用说明.txt" release\
-
-    - name: Archive release
-      uses: actions/upload-artifact@v4
-      with:
-        name: FileMover-Release
-        path: release/
+        if (Test-Path "dist\FileMover.exe") {
+          Write-Host "✅ Build successful"
+          Get-Item "dist\FileMover.exe" | Select-Object Name, Length
+        } else {
+          Write-Host "❌ Build failed"
+          exit 1
+        }
         
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: FileMover-Release
-        path: release/
-
     - name: Get version
       id: get_version
       run: |
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-        else
-          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        fi
+        if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          echo "version=${{ github.event.inputs.version }}" >> $env:GITHUB_OUTPUT
+        } else {
+          $version = "${{ github.ref }}" -replace "refs/tags/", ""
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+        }
 
     - name: Create Release
-      id: create_release
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -84,42 +66,26 @@ jobs:
         body: |
           🚀 **FileMover ${{ steps.get_version.outputs.version }} - 现代化文件筛选工具**
 
-          ## ✨ 新功能
-          - 🎨 **全新现代化UI设计** - 深色主题，圆角按钮，卡片式布局
-          - 🚀 **自动打开文件夹** - 处理完成后直接打开输出文件夹，无弹窗干扰
-          - 📦 **简化项目结构** - 重构为单一main.py文件，易于维护
-          - 🌍 **中文优先文档** - 双语README，默认显示中文内容
-
-          ## 🔧 优化改进
-          - 🛡️ **彻底解决运行时错误** - 移除复杂依赖，提高稳定性
-          - 📁 **统一文件结构** - 删除多余文件，保持项目简洁
-          - 🎯 **用户体验优化** - 简化操作流程，提升使用效率
-          - 📋 **标准化文档** - 符合GitHub开源项目标准
-
-          ## 🐛 修复问题
-          - ✅ **文件选择问题** - 修复浏览文件后路径不显示的问题
-          - ✅ **占位符处理** - 优化输入框占位符逻辑
-          - ✅ **UI标题优化** - 去除冗余版本信息，界面更简洁
+          ## ✨ 主要特性
+          - 🎨 **现代化UI设计** - 深色主题，用户友好界面
+          - 📦 **多格式支持** - ZIP、RAR、7Z等压缩格式
+          - 🔍 **智能筛选** - 关键字匹配和文件过滤
+          - 🚀 **自动化处理** - 一键处理，自动打开结果文件夹
 
           ## 📦 下载说明
           - **FileMover.exe** - Windows可执行文件（约8MB）
-
-          ## 💻 系统要求
-          - Windows 7/8/10/11
+          - 支持Windows 7/8/10/11
           - 无需安装Python或其他依赖
 
           ## 🚀 快速开始
           1. 下载FileMover.exe
           2. 双击运行程序
           3. 选择压缩包文件
-          4. 输入关键字
-          5. 选择操作模式
-          6. 开始处理
-
-          ---
+          4. 输入筛选关键字
+          5. 开始处理
 
           **⭐ 如果这个项目对您有帮助，请给个Star支持一下！**
         draft: false
         prerelease: false
         files: |
-          release/FileMover.exe
+          dist/FileMover.exe
