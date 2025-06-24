@@ -223,17 +223,22 @@ class ModernFileFilterApp:
         if placeholder:
             entry.insert(0, placeholder)
             entry.config(fg=self.colors['text_muted'])
-            
+
+            # 添加一个属性来跟踪是否显示占位符
+            entry.has_placeholder = True
+
             def on_focus_in(event):
-                if entry.get() == placeholder:
+                if hasattr(entry, 'has_placeholder') and entry.has_placeholder and entry.get() == placeholder:
                     entry.delete(0, tk.END)
                     entry.config(fg=self.colors['text_primary'])
-            
+                    entry.has_placeholder = False
+
             def on_focus_out(event):
                 if not entry.get():
                     entry.insert(0, placeholder)
                     entry.config(fg=self.colors['text_muted'])
-            
+                    entry.has_placeholder = True
+
             entry.bind('<FocusIn>', on_focus_in)
             entry.bind('<FocusOut>', on_focus_out)
         
@@ -395,12 +400,7 @@ class ModernFileFilterApp:
         # 清空按钮
         clear_frame, clear_btn = self.create_modern_button(
             button_container, "🗑️ 清空", self.clear_keywords, "warning", width=10)
-        clear_frame.pack(side='left', padx=(0, 10))
-
-        # 示例按钮
-        example_frame, example_btn = self.create_modern_button(
-            button_container, "💡 示例", self.load_example_keywords, "primary", width=10)
-        example_frame.pack(side='left')
+        clear_frame.pack(side='left')
 
     def setup_operation_mode(self, parent):
         """设置操作模式区域"""
@@ -565,8 +565,12 @@ class ModernFileFilterApp:
 
     def browse_archive(self):
         """浏览压缩包"""
+        # 获取上次选择的目录
+        last_dir = self.config_manager.get("user_preferences.last_browse_directory", os.path.expanduser("~"))
+
         file_path = filedialog.askopenfilename(
             title="选择压缩包文件",
+            initialdir=last_dir,
             filetypes=[
                 ("压缩包文件", "*.zip;*.rar;*.7z"),
                 ("ZIP文件", "*.zip"),
@@ -576,10 +580,16 @@ class ModernFileFilterApp:
             ]
         )
         if file_path:
-            # 清除占位符效果
+            # 保存当前选择的目录
+            current_dir = os.path.dirname(file_path)
+            self.config_manager.set("user_preferences.last_browse_directory", current_dir)
+            self.config_manager.save()
+
+            # 清除输入框内容并设置新路径
             self.archive_entry.delete(0, tk.END)
             self.archive_entry.insert(0, file_path)
             self.archive_entry.config(fg=self.colors['text_primary'])
+            self.archive_entry.has_placeholder = False
 
             # 更新文件信息
             file_name = os.path.basename(file_path)
@@ -592,12 +602,6 @@ class ModernFileFilterApp:
     def clear_keywords(self):
         """清空关键字"""
         self.keyword_text.delete(1.0, tk.END)
-
-    def load_example_keywords(self):
-        """加载示例关键字"""
-        examples = ["图片", "文档", "视频", "音频", "压缩包"]
-        self.keyword_text.delete(1.0, tk.END)
-        self.keyword_text.insert(1.0, "\n".join(examples))
 
     def format_file_size(self, size_bytes):
         """格式化文件大小"""
@@ -807,15 +811,16 @@ class ModernFileFilterApp:
 
     def show_completion_dialog(self, output_dir, matched_count, total_count):
         """显示处理完成对话框"""
-        result = messagebox.askyesno("处理完成",
-                                   f"处理完成！\n\n"
-                                   f"匹配文件: {matched_count}\n"
-                                   f"总文件数: {total_count}\n"
-                                   f"输出目录: {output_dir}\n\n"
-                                   f"是否打开输出文件夹？")
+        # 显示完成信息
+        messagebox.showinfo("处理完成",
+                           f"处理完成！\n\n"
+                           f"匹配文件: {matched_count}\n"
+                           f"总文件数: {total_count}\n"
+                           f"输出目录: {output_dir}\n\n"
+                           f"正在自动打开文件夹...")
 
-        if result:
-            self.open_folder(output_dir)
+        # 自动打开文件夹
+        self.open_folder(output_dir)
 
     def open_folder(self, folder_path):
         """跨平台打开文件夹"""
