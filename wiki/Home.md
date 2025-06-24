@@ -34,7 +34,7 @@
 
 ### 基本信息
 - **项目名称**: FileMover
-- **当前版本**: v4.0
+- **当前版本**: v1.0.0
 - **开发语言**: Python 3.8+
 - **UI框架**: Tkinter
 - **许可证**: MIT License
@@ -111,7 +111,7 @@ python main.py
 
 ---
 
-**最后更新**: 2024年12月19日  
+**最后更新**: 2025年6月24日
 **Wiki版本**: v1.0  
 **维护者**: [mazongYY](https://github.com/mazongYY)
 

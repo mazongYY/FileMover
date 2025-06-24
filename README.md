@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-4.0-blue.svg)](https://github.com/mazongYY/FileMover/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/mazongYY/FileMover/releases)
 [![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/mazongYY/FileMover)
@@ -87,7 +87,7 @@ python main.py
 
 ### 📚 版本历史
 
-#### v4.0 (2024-12-19)
+#### v1.0.0 (2025-06-24)
 - ✅ 全新现代化UI设计
 - 🚀 处理完成自动打开文件夹
 - 🛡️ 完全解决运行时错误
