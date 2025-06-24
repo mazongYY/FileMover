@@ -24,17 +24,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Syntax check
+    - name: Run CI tests
       run: |
-        python -m py_compile main.py
-
-    - name: Test basic functionality
-      run: |
-        python -c "print('✅ Python syntax check passed')"
-
-    - name: Test imports
-      run: |
-        python -c "import tkinter; print('✅ tkinter import successful')"
+        python ci_test.py
+      env:
+        # 设置环境变量以支持无头模式
+        PYTHONUNBUFFERED: 1
+        CI: true
 
   build:
     needs: test
@@ -57,7 +53,11 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller --onefile --windowed --name=FileMover main.py
+        python build_config.py
+      env:
+        # 设置环境变量以支持无头构建
+        PYTHONUNBUFFERED: 1
+        CI: true
 
     - name: Verify build
       run: |

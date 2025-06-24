@@ -34,7 +34,9 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller --onefile --windowed --name=FileMover main.py
+        python build_config.py
+      env:
+        CI: true
 
     - name: Verify build
       run: |
