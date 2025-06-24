@@ -1,13 +1,13 @@
-FileMover v4.0 - 现代化UI版本使用说明
+FileMover - 文件筛选与移动工具使用说明
 =====================================
 
 📦 包含文件：
-- FileMover_Modern_v2.exe (现代化UI v2，约13MB) ⭐⭐⭐⭐推荐
+- FileMover.exe          (约8MB) ⭐⭐⭐⭐推荐
 - 使用说明.txt           (本文件)
 
 🚀 版本说明：
 
-【现代化UI v2 - FileMover_Modern_v2.exe】⭐⭐⭐⭐推荐
+【FileMover.exe】⭐⭐⭐⭐推荐
 ✅ 全新的现代化深色主题界面设计
 ✅ 圆角按钮和卡片式布局，视觉效果出色
 ✅ 深色背景配色，护眼且时尚
@@ -28,13 +28,13 @@ FileMover v4.0 - 现代化UI版本使用说明
 - 操作历史和撤销功能
 
 💡 使用方法：
-1. 双击运行 FileMover_Modern_v2.exe
+1. 双击运行 FileMover.exe
 2. 选择压缩包文件（支持拖拽）
 3. 输入搜索关键字（每行一个）
 4. 选择操作模式（移动/复制/链接）
 5. 点击"预览匹配文件"查看结果
 6. 点击"开始处理"执行操作
-7. 处理完成后会询问是否打开输出文件夹
+7. 处理完成后会自动打开输出文件夹
 
 ⚙️ 系统要求：
 - Windows 7/8/10/11 (64位)
@@ -64,7 +64,7 @@ FileMover v4.0 - 现代化UI版本使用说明
 - 项目地址：https://github.com/mazongYY/FileMover
 - 问题反馈：https://github.com/mazongYY/FileMover/issues
 
-版本：v4.0 - 现代化UI v2
+版本：v4.0
 编译时间：2024-12-19
 Python版本：3.8.6
 PyInstaller版本：6.1.0
