@@ -11,37 +11,41 @@ on:
         required: true
         default: 'v1.0.0'
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller
         pip install rarfile py7zr
-        
+
     - name: Build executable
       run: |
         pyinstaller --onefile --windowed --name=FileMover --clean main.py
-        
+
     - name: Create release package
       run: |
         mkdir release
         copy dist\FileMover.exe release\
-        copy dist\使用说明.txt release\ 2>nul || echo "使用说明.txt not found, skipping"
-        
+        if exist "dist\使用说明.txt" copy "dist\使用说明.txt" release\
+
     - name: Archive release
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: FileMover-Release
         path: release/
@@ -49,17 +53,17 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: FileMover-Release
         path: release/
-        
+
     - name: Get version
       id: get_version
       run: |
@@ -68,15 +72,15 @@ jobs:
         else
           echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
         fi
-        
+
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
-        release_name: FileMover ${{ steps.get_version.outputs.version }}
+        name: FileMover ${{ steps.get_version.outputs.version }}
         body: |
           🚀 **FileMover ${{ steps.get_version.outputs.version }} - 现代化文件筛选工具**
 
@@ -99,7 +103,6 @@ jobs:
 
           ## 📦 下载说明
           - **FileMover.exe** - Windows可执行文件（约8MB）
-          - **使用说明.txt** - 详细使用指南
 
           ## 💻 系统要求
           - Windows 7/8/10/11
@@ -118,13 +121,5 @@ jobs:
           **⭐ 如果这个项目对您有帮助，请给个Star支持一下！**
         draft: false
         prerelease: false
-        
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: release/FileMover.exe
-        asset_name: FileMover.exe
-        asset_content_type: application/octet-stream
+        files: |
+          release/FileMover.exe
